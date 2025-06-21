@@ -1,0 +1,96 @@
+.carousel {
+  position: relative;
+  width: 100%;
+}
+
+.carouselContainer {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+.carouselTrack {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carouselSlide {
+  min-width: 100%;
+  flex-shrink: 0;
+}
+
+.carouselButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 2;
+  opacity: 0;
+}
+
+.carouselContainer:hover .carouselButton {
+  opacity: 1;
+}
+
+.carouselButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.prevButton {
+  left: var(--space-4);
+}
+
+.nextButton {
+  right: var(--space-4);
+}
+
+.indicators {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--primary-600);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.indicator:hover {
+  background: var(--primary-400);
+}
+
+.indicatorActive {
+  background: var(--accent-purple);
+  transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+  .carouselButton {
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+  }
+  
+  .prevButton {
+    left: var(--space-2);
+  }
+  
+  .nextButton {
+    right: var(--space-2);
+  }
+}
