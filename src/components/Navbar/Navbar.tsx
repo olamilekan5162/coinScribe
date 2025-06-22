@@ -40,6 +40,7 @@ const Navbar: React.FC = () => {
 
   const handleWalletClick = () => {
     if (isConnected) {
+      console.log('Clicked wallet connect');
       // Show wallet modal for connected users
       open();
     } else {
