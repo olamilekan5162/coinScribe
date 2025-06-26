@@ -5,6 +5,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePosts } from '../../hooks/usePosts';
 import PostEditor from '../../components/PostEditor/PostEditor';
 import styles from './CreatePost.module.css';
+import { useWalletClient } from 'wagmi';
+import { createCoinCall, DeployCurrency } from '@zoralabs/coins-sdk';
+import { Address } from 'viem';
+import { simulateContract, writeContract } from 'wagmi/actions';
+
 
 interface PostData {
   title: string;
@@ -14,10 +19,13 @@ interface PostData {
 
 const CreatePost: React.FC = () => {
   const navigate = useNavigate();
+  const { data: walletClient } = useWalletClient();
   const { user, isConnected } = useAuth();
   const { createPost } = usePosts();
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [publishSuccess, setPublishSuccess] = useState<boolean>(false);
+  const [coinParams, setCoinParams] = useState<any | null>(null);
+  const [writeConfig, setWriteConfig] = useState<any | null>(null);
 
   // Redirect if not connected
   React.useEffect(() => {
@@ -37,28 +45,33 @@ const CreatePost: React.FC = () => {
     window.dispatchEvent(event);
   };
 
+ 
+
+
+
+
+
+
+
   const handlePublish = async (postData: PostData): Promise<void> => {
-    if (!user) {
-      const event = new CustomEvent('showToast', {
+    if (!user || !walletClient) {
+      window.dispatchEvent(new CustomEvent('showToast', {
         detail: { message: 'Please connect your wallet to publish', type: 'error' }
-      });
-      window.dispatchEvent(event);
+      }));
       return;
     }
 
-    if (!postData.title.trim()) {
-      const event = new CustomEvent('showToast', {
+    if (!postData.title.trim() ) {
+      window.dispatchEvent(new CustomEvent('showToast', {
         detail: { message: 'Please enter a title for your post', type: 'error' }
-      });
-      window.dispatchEvent(event);
+      }));
       return;
     }
 
     if (!postData.content.trim()) {
-      const event = new CustomEvent('showToast', {
+     window.dispatchEvent(new CustomEvent('showToast', {
         detail: { message: 'Please write some content for your post', type: 'error' }
-      });
-      window.dispatchEvent(event);
+      }));
       return;
     }
 
@@ -72,22 +85,70 @@ const CreatePost: React.FC = () => {
       }, user.id);
       
       console.log('Published post with ID:', postId);
-      setPublishSuccess(true);
+      // setPublishSuccess(true);
       
       // Show success and redirect
-      setTimeout(() => {
-        navigate(`/post/${postId}`);
-      }, 1500);
+      // setTimeout(() => {
+      //   navigate(`/post/${postId}`);
+      // }, 1500);
       
+      // create coin Params
+      const coinParamsData = {
+        name: postData.title,
+        symbol: postData.title.slice(0, 5).toUpperCase(),
+        // uri: link,
+        payoutRecipient: walletClient.account.address as Address,
+        platformReferrer: '0x0000000000000000000000000000000000000000',
+        currency: DeployCurrency.ZORA
+      };
+
+      // contract call configuration
+
+     const contractCallParams = await createCoinCall(coinParamsData);
+
+setCoinParams(coinParamsData);
+setWriteConfig(contractCallParams);
+
+window.dispatchEvent(new CustomEvent('showToast', {
+  detail: {
+    message: 'Post saved! Now confirming coin mint transaction...',
+    type: 'info'
+  }
+}));
+
+// Simulate
+const simulation = await simulateContract({
+  ...contractCallParams,
+});
+
+// Write
+const result = await writeContract(simulation.request);
+
+console.log('✅ Coin minted! TX Hash:', result);
+
+setPublishSuccess(true);
+
+window.dispatchEvent(new CustomEvent('showToast', {
+  detail: {
+    message: 'Post published and coin minted!',
+    type: 'success'
+  }
+}));
+
+setTimeout(() => {
+  navigate(`/post/${postId}`);
+}, 1500);
+
+
+
     } catch (error) {
       console.error('Publishing failed:', error);
-      const event = new CustomEvent('showToast', {
+      window.dispatchEvent(new CustomEvent('showToast', {
         detail: { 
           message: error instanceof Error ? error.message : 'Failed to publish post. Please try again.', 
           type: 'error' 
         }
-      });
-      window.dispatchEvent(event);
+      }));
     } finally {
       setIsPublishing(false);
     }
