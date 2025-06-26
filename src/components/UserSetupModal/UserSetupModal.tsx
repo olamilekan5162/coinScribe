@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, Upload, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import styles from './UserSetupModal.module.css';
+import React, { useState } from "react";
+import { X, Upload, User } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import styles from "./UserSetupModal.module.css";
 
 interface UserSetupModalProps {
   isOpen: boolean;
@@ -9,24 +9,24 @@ interface UserSetupModalProps {
 }
 
 const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [profileImage, setProfileImage] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [profileImage, setProfileImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const auth = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!fullName.trim()) {
-      setError('Full name is required');
+      setError("Full name is required");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await (auth as any).createUser({
@@ -36,8 +36,8 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
       });
       onClose();
     } catch (err) {
-      setError('Failed to create profile. Please try again.');
-      console.error('Profile creation error:', err);
+      setError("Failed to create profile. Please try again.");
+      console.error("Profile creation error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -61,25 +61,27 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className={styles.overlay}>
       <div className={`${styles.modal} glass`}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Complete Your Profile</h2>
-          <button onClick={onClose} className={styles.closeButton}>
+        <div className={styles.closeButton}>
+          <button onClick={onClose}>
             <X size={24} />
           </button>
         </div>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Complete Your Profile</h2>
+        </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          {error && (
-            <div className={styles.error}>
-              {error}
-            </div>
-          )}
+          {error && <div className={styles.error}>{error}</div>}
 
           {/* Profile Image */}
           <div className={styles.imageSection}>
             <div className={styles.imagePreview}>
               {profileImage ? (
-                <img src={profileImage} alt="Profile" className={styles.previewImage} />
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className={styles.previewImage}
+                />
               ) : (
                 <User size={48} className={styles.placeholderIcon} />
               )}
@@ -98,9 +100,7 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
 
           {/* Full Name */}
           <div className={styles.field}>
-            <label className={styles.label}>
-              Full Name *
-            </label>
+            <label className={styles.label}>Full Name *</label>
             <input
               type="text"
               value={fullName}
@@ -113,9 +113,7 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
 
           {/* Email */}
           <div className={styles.field}>
-            <label className={styles.label}>
-              Email Address (Optional)
-            </label>
+            <label className={styles.label}>Email Address (Optional)</label>
             <input
               type="email"
               value={email}
@@ -131,12 +129,13 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
             disabled={isLoading || !fullName.trim()}
             className={`${styles.submitButton} glow`}
           >
-            {isLoading ? 'Creating Profile...' : 'Create Profile'}
+            {isLoading ? "Creating Profile..." : "Create Profile"}
           </button>
         </form>
 
         <p className={styles.note}>
-          Your wallet address will be linked to this profile. You can update these details later.
+          Your wallet address will be linked to this profile. You can update
+          these details later.
         </p>
       </div>
     </div>

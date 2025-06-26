@@ -1,17 +1,17 @@
-import React from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Eye, 
-  Heart, 
-  MessageCircle, 
+import React from "react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  Heart,
+  MessageCircle,
   Share2,
   Coins,
   Users,
   Calendar,
-  DollarSign
-} from 'lucide-react';
-import styles from './StatsPanel.module.css';
+  DollarSign,
+} from "lucide-react";
+import styles from "./StatsPanel.module.css";
 
 interface StatsPanelData {
   views?: number;
@@ -27,15 +27,15 @@ interface StatsPanelData {
 }
 
 interface StatsPanelProps {
-  variant?: 'post' | 'dashboard';
+  variant?: "post" | "dashboard";
   data?: StatsPanelData;
   className?: string;
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ 
-  variant = 'post', 
-  data = {}, 
-  className = '' 
+const StatsPanel: React.FC<StatsPanelProps> = ({
+  variant = "post",
+  data = {},
+  className = "",
 }) => {
   const {
     views = 0,
@@ -47,39 +47,41 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     holders = 0,
     totalEarnings = 0,
     publishedAt,
-    readTime
+    readTime,
   } = data;
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return (num / 1000).toFixed(1) + "K";
     }
     return num.toString();
   };
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 4
+      maximumFractionDigits: 4,
     }).format(price);
   };
 
   const formatDate = (date?: string): string => {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
-  if (variant === 'post') {
+  if (variant === "post") {
     return (
-      <div className={`${styles.statsPanel} ${styles.postStats} glass ${className}`}>
+      <div
+        className={`${styles.statsPanel} ${styles.postStats} glass ${className}`}
+      >
         <div className={styles.statsHeader}>
           <h3 className={styles.statsTitle}>Post Statistics</h3>
           {publishedAt && (
@@ -140,15 +142,22 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 <Coins size={16} />
               </div>
               <div className={styles.coinInfo}>
-                <span className={styles.coinValue}>{formatPrice(coinPrice)}</span>
+                <span className={styles.coinValue}>
+                  {formatPrice(coinPrice)}
+                </span>
                 <div className={styles.coinChange}>
                   {priceChange >= 0 ? (
                     <TrendingUp size={12} className={styles.trendUp} />
                   ) : (
                     <TrendingDown size={12} className={styles.trendDown} />
                   )}
-                  <span className={priceChange >= 0 ? styles.changeUp : styles.changeDown}>
-                    {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
+                  <span
+                    className={
+                      priceChange >= 0 ? styles.changeUp : styles.changeDown
+                    }
+                  >
+                    {priceChange >= 0 ? "+" : ""}
+                    {priceChange.toFixed(2)}%
                   </span>
                 </div>
               </div>
@@ -163,9 +172,9 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     );
   }
 
-  if (variant === 'dashboard') {
+  if (variant === "dashboard") {
     return (
-      <div className={`${styles.statsPanel} ${styles.dashboardStats} glass ${className}`}>
+      <div className={`${styles.statsPanel} glass`}>
         <div className={styles.statsHeader}>
           <h3 className={styles.statsTitle}>Earnings Overview</h3>
         </div>
@@ -176,7 +185,9 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <DollarSign size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>{formatPrice(totalEarnings)}</span>
+              <span className={styles.earningValue}>
+                {formatPrice(totalEarnings)}
+              </span>
               <span className={styles.earningLabel}>Total Earnings</span>
             </div>
           </div>
@@ -186,7 +197,9 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Coins size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>{formatPrice(coinPrice)}</span>
+              <span className={styles.earningValue}>
+                {formatPrice(coinPrice)}
+              </span>
               <span className={styles.earningLabel}>Avg. Coin Price</span>
             </div>
           </div>
@@ -196,7 +209,9 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Users size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>{formatNumber(holders)}</span>
+              <span className={styles.earningValue}>
+                {formatNumber(holders)}
+              </span>
               <span className={styles.earningLabel}>Total Holders</span>
             </div>
           </div>
