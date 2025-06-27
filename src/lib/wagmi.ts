@@ -1,17 +1,19 @@
-import { createConfig, http } from 'wagmi';
-import { mainnet, polygon, arbitrum } from 'wagmi/chains';
-import { createWeb3Modal } from '@web3modal/wagmi/react';
+import { createConfig, http } from "wagmi";
+import { mainnet, polygon, arbitrum, baseSepolia } from "wagmi/chains";
+import { createWeb3Modal } from "@web3modal/wagmi/react";
 
 // Get projectId from environment variables
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'demo-project-id';
+const projectId =
+  import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "demo-project-id";
 
 // Create wagmi config
 export const config = createConfig({
-  chains: [mainnet, polygon, arbitrum],
+  chains: [mainnet, polygon, arbitrum, baseSepolia],
   transports: {
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [arbitrum.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });
 

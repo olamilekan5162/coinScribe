@@ -22,7 +22,7 @@ const AppContent: React.FC = () => {
   const { showUserSetupModal, setShowUserSetupModal } = useAuth();
 
   return (
-    <div className="min-h-screen bg-primary-900 w-full mx-auto container">
+    <div className="min-h-screen bg-primary-900 w-full mx-auto">
       <Navbar />
       <main>
         <Routes>

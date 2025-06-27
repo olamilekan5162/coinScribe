@@ -1,24 +1,25 @@
-import React, { useState, useRef } from 'react';
-import { 
-  Bold, 
-  Italic, 
-  Underline, 
-  Link, 
-  Image, 
-  List, 
+import React, { useState, useRef } from "react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  Link,
+  Image,
+  List,
   ListOrdered,
   Quote,
   Code,
   Eye,
   EyeOff,
   Save,
-  Send
-} from 'lucide-react';
-import styles from './PostEditor.module.css';
+  Send,
+} from "lucide-react";
+import styles from "./PostEditor.module.css";
 
 interface PostData {
   title: string;
   content: string;
+  imageLink: string;
   tags: string[];
 }
 
@@ -37,42 +38,57 @@ interface PostEditorProps {
   isPublishing?: boolean;
 }
 
-const PostEditor: React.FC<PostEditorProps> = ({ 
-  onSave, 
-  onPublish, 
-  initialContent = '', 
-  initialTitle = '',
-  isPublishing = false 
+const PostEditor: React.FC<PostEditorProps> = ({
+  onSave,
+  onPublish,
+  initialContent = "",
+  initialTitle = "",
+  isPublishing = false,
 }) => {
   const [title, setTitle] = useState<string>(initialTitle);
   const [content, setContent] = useState<string>(initialContent);
   const [isPreview, setIsPreview] = useState<boolean>(false);
   const [tags, setTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState<string>('');
+  const [imageLink, setImageLink] = useState<string>("");
+  const [currentTag, setCurrentTag] = useState<string>("");
   const editorRef = useRef<HTMLDivElement>(null);
 
   const toolbarActions: ToolbarAction[] = [
-    { icon: Bold, action: 'bold', tooltip: 'Bold' },
-    { icon: Italic, action: 'italic', tooltip: 'Italic' },
-    { icon: Underline, action: 'underline', tooltip: 'Underline' },
-    { icon: Link, action: 'createLink', tooltip: 'Link' },
-    { icon: Image, action: 'insertImage', tooltip: 'Image' },
-    { icon: List, action: 'insertUnorderedList', tooltip: 'Bullet List' },
-    { icon: ListOrdered, action: 'insertOrderedList', tooltip: 'Numbered List' },
-    { icon: Quote, action: 'formatBlock', tooltip: 'Quote', value: 'blockquote' },
-    { icon: Code, action: 'formatBlock', tooltip: 'Code Block', value: 'pre' }
+    { icon: Bold, action: "bold", tooltip: "Bold" },
+    { icon: Italic, action: "italic", tooltip: "Italic" },
+    { icon: Underline, action: "underline", tooltip: "Underline" },
+    { icon: Link, action: "createLink", tooltip: "Link" },
+    { icon: Image, action: "insertImage", tooltip: "Image" },
+    { icon: List, action: "insertUnorderedList", tooltip: "Bullet List" },
+    {
+      icon: ListOrdered,
+      action: "insertOrderedList",
+      tooltip: "Numbered List",
+    },
+    {
+      icon: Quote,
+      action: "formatBlock",
+      tooltip: "Quote",
+      value: "blockquote",
+    },
+    { icon: Code, action: "formatBlock", tooltip: "Code Block", value: "pre" },
   ];
 
-  const handleToolbarAction = (action: string, value: string | null = null): void => {
-    if (action === 'createLink') {
-      const url = prompt('Enter URL:');
+  const handleToolbarAction = (
+    action: string,
+    value: string | null = null
+  ): void => {
+    if (action === "createLink") {
+      const url = prompt("Enter URL:");
       if (url) {
         document.execCommand(action, false, url);
+        setImageLink(url);
       }
-    } else if (action === 'insertImage') {
-      const url = prompt('Enter image URL:');
+    } else if (action === "insertImage") {
+      const url = prompt("Enter image URL:");
       if (url) {
         document.execCommand(action, false, url);
+        setImageLink(url);
       }
     } else {
       document.execCommand(action, false, value);
@@ -89,28 +105,28 @@ const PostEditor: React.FC<PostEditorProps> = ({
   const addTag = (): void => {
     if (currentTag.trim() && !tags.includes(currentTag.trim())) {
       setTags([...tags, currentTag.trim()]);
-      setCurrentTag('');
+      setCurrentTag("");
     }
   };
 
   const removeTag = (tagToRemove: string): void => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addTag();
     }
   };
 
   const handleSave = (): void => {
-    onSave?.({ title, content, tags });
+    onSave?.({ title, content, tags, imageLink });
   };
 
   const handlePublish = (): void => {
-    onPublish?.({ title, content, tags });
-    console.log({ title, content, tags })
+    onPublish?.({ title, content, tags, imageLink });
+    console.log({ title, content, tags });
   };
 
   return (
@@ -130,12 +146,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
             className={styles.previewButton}
           >
             {isPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-            <span>{isPreview ? 'Edit' : 'Preview'}</span>
+            <span>{isPreview ? "Edit" : "Preview"}</span>
           </button>
-          <button
-            onClick={handleSave}
-            className={styles.saveButton}
-          >
+          <button onClick={handleSave} className={styles.saveButton}>
             <Save size={16} />
             <span>Save Draft</span>
           </button>
@@ -145,7 +158,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
             disabled={isPublishing}
           >
             <Send size={16} />
-            <span>{isPublishing ? 'Publishing...' : 'Publish'}</span>
+            <span>{isPublishing ? "Publishing..." : "Publish"}</span>
           </button>
         </div>
       </div>
@@ -173,10 +186,12 @@ const PostEditor: React.FC<PostEditorProps> = ({
       <div className={styles.contentArea}>
         {isPreview ? (
           <div className={styles.preview}>
-            <h1 className={styles.previewTitle}>{title || 'Untitled Post'}</h1>
-            <div 
+            <h1 className={styles.previewTitle}>{title || "Untitled Post"}</h1>
+            <div
               className={styles.previewContent}
-              dangerouslySetInnerHTML={{ __html: content || '<p>Start writing your post...</p>' }}
+              dangerouslySetInnerHTML={{
+                __html: content || "<p>Start writing your post...</p>",
+              }}
             />
           </div>
         ) : (
