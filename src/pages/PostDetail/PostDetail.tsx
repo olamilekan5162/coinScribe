@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Share2,
   Bookmark,
   MoreHorizontal,
   Calendar,
   Clock,
   TrendingUp,
   Coins,
-  Users
-} from 'lucide-react';
-import UserAvatar from '../../components/UserAvatar/UserAvatar';
-import StatsPanel from '../../components/StatsPanel/StatsPanel';
-import PostCard from '../../components/PostCard/PostCard';
-import styles from './PostDetail.module.css';
+  Users,
+} from "lucide-react";
+import UserAvatar from "../../components/UserAvatar/UserAvatar";
+import StatsPanel from "../../components/StatsPanel/StatsPanel";
+import PostCard from "../../components/PostCard/PostCard";
+import styles from "./PostDetail.module.css";
+import { getCoin } from "@zoralabs/coins-sdk";
+import { baseSepolia } from "viem/chains";
 
 interface Author {
   name: string;
@@ -69,12 +71,69 @@ interface RelatedPost {
   };
 }
 
+interface PostData {
+  name: string;
+  description: string;
+  image: string;
+  animation_url: string;
+  content: {
+    mime: string;
+    uri: string;
+  };
+  created: string;
+  creator: {
+    id: string;
+    bio: string;
+    wallet_address: string;
+    full_name: string;
+    email: string;
+    profile_image: string;
+  };
+  properties: {
+    category: string;
+  };
+  storyContent: string;
+  tags: string[];
+}
+
 const PostDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  // const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(2340);
+  const [postData, setPostData] = useState<PostData | null>(null);
+
+  // const pinata = new PinataSDK({
+  //   pinataJwt: import.meta.env.VITE_PINATA_JWT,
+  //   pinataGateway: import.meta.env.VITE_PINATA_GATEWAY_URL,
+  // });
+
+  const fetchSingleCoin = async () => {
+    const response = await getCoin({
+      address: "0xDECBAcd31b57452fC2CfAE8f4aEbB8D8d1757357",
+      chain: baseSepolia.id,
+    });
+    return response.data?.zora20Token;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const coin = await fetchSingleCoin();
+      try {
+        const response = await fetch(`${coin?.tokenUri}`);
+        if (!response) {
+          throw new Error("unable to fetch");
+        }
+        const data: PostData = await response.json();
+        console.log(data);
+        setPostData(data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Mock post data - in a real app, this would come from an API/blockchain
   const post: Post = {
@@ -127,16 +186,24 @@ const PostDetail: React.FC = () => {
     `,
     author: {
       name: "Alex Chen",
-      avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
+      avatar:
+        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
       bio: "Web3 researcher and content creator passionate about decentralized technologies and their impact on creative industries.",
       followers: 12500,
       following: 340,
-      posts: 24
+      posts: 24,
     },
     publishedAt: "2025-01-20T10:00:00Z",
     readTime: 12,
-    image: "https://images.pexels.com/photos/7433829/pexels-photo-7433829.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    tags: ["Web3", "Publishing", "Blockchain", "Creator Economy", "Decentralization"],
+    image:
+      "https://images.pexels.com/photos/7433829/pexels-photo-7433829.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    tags: [
+      "Web3",
+      "Publishing",
+      "Blockchain",
+      "Creator Economy",
+      "Decentralization",
+    ],
     stats: {
       views: 15420,
       likes: 2340,
@@ -145,44 +212,50 @@ const PostDetail: React.FC = () => {
       coinPrice: 45.67,
       priceChange: 12.5,
       holders: 1250,
-      totalEarnings: 3420
-    }
+      totalEarnings: 3420,
+    },
   };
 
   const relatedPosts: RelatedPost[] = [
     {
       id: 2,
       title: "Building Community Through Tokenized Stories",
-      excerpt: "How creators are using social tokens to build deeper connections with their audience.",
+      excerpt:
+        "How creators are using social tokens to build deeper connections with their audience.",
       author: {
         name: "Sarah Martinez",
-        avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150"
+        avatar:
+          "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
       },
       publishedAt: "2025-01-19",
       readTime: 8,
-      image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600",
+      image:
+        "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600",
       tags: ["Community", "Tokens"],
-      stats: { likes: 1890, comments: 67, shares: 123 }
+      stats: { likes: 1890, comments: 67, shares: 123 },
     },
     {
       id: 3,
       title: "Smart Contracts for Content Creators",
-      excerpt: "A practical guide to using smart contracts for automated royalties and rights management.",
+      excerpt:
+        "A practical guide to using smart contracts for automated royalties and rights management.",
       author: {
         name: "Michael Kim",
-        avatar: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150"
+        avatar:
+          "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150",
       },
       publishedAt: "2025-01-18",
       readTime: 10,
-      image: "https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&cs=tinysrgb&w=600",
+      image:
+        "https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&cs=tinysrgb&w=600",
       tags: ["Smart Contracts", "Development"],
-      stats: { likes: 1560, comments: 45, shares: 89 }
-    }
+      stats: { likes: 1560, comments: 45, shares: 89 },
+    },
   ];
 
   const handleLike = (): void => {
     setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
   const handleShare = (): void => {
@@ -195,18 +268,18 @@ const PostDetail: React.FC = () => {
     } else {
       navigator.clipboard.writeText(window.location.href);
       // Show toast notification
-      const event = new CustomEvent('showToast', {
-        detail: { message: 'Link copied to clipboard!', type: 'success' }
+      const event = new CustomEvent("showToast", {
+        detail: { message: "Link copied to clipboard!", type: "success" },
       });
       window.dispatchEvent(event);
     }
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -215,10 +288,7 @@ const PostDetail: React.FC = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className="container">
-          <button 
-            onClick={() => navigate(-1)}
-            className={styles.backButton}
-          >
+          <button onClick={() => navigate(-1)} className={styles.backButton}>
             <ArrowLeft size={20} />
             <span>Back</span>
           </button>
@@ -226,20 +296,22 @@ const PostDetail: React.FC = () => {
       </div>
 
       {/* Hero Image */}
-      {post.image && (
+      {postData?.image && (
         <div className={styles.heroImage}>
-          <img src={post.image} alt={post.title} />
+          <img src={postData?.image} alt={postData?.name} />
           <div className={styles.heroOverlay}>
             <div className="container">
               <div className={styles.heroContent}>
                 <div className={styles.postMeta}>
                   <div className={styles.metaItem}>
                     <Calendar size={16} />
-                    <span>{formatDate(post.publishedAt)}</span>
+                    <span>{formatDate(postData?.created)}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={16} />
-                    <span>{post.readTime} min read</span>
+                    <span>
+                      {Math.floor(postData?.storyContent.length / 200)} min read
+                    </span>
                   </div>
                   <div className={styles.metaItem}>
                     <TrendingUp size={16} />
@@ -259,21 +331,30 @@ const PostDetail: React.FC = () => {
             <article className={`${styles.article} glass`}>
               {/* Article Header */}
               <header className={styles.articleHeader}>
-                <h1 className={styles.title}>{post.title}</h1>
-                
+                <h1 className={styles.title}>{postData?.name}</h1>
+
                 <div className={styles.authorSection}>
-                  <Link to={`/profile/${post.author.name}`} className={styles.authorInfo}>
-                    <UserAvatar 
-                      src={post.author.avatar}
-                      alt={post.author.name}
+                  <Link
+                    to={`/profile/${post.author.name}`}
+                    className={styles.authorInfo}
+                  >
+                    <UserAvatar
+                      src={postData?.creator?.profile_image}
+                      alt={postData?.creator.full_name}
                       size="lg"
                       showBorder
                     />
                     <div className={styles.authorMeta}>
-                      <h3 className={styles.authorName}>{post.author.name}</h3>
-                      <p className={styles.authorBio}>{post.author.bio}</p>
+                      <h3 className={styles.authorName}>
+                        {postData?.creator.full_name}
+                      </h3>
+                      <p className={styles.authorBio}>
+                        {postData?.creator.bio}
+                      </p>
                       <div className={styles.authorStats}>
-                        <span>{post.author.followers.toLocaleString()} followers</span>
+                        <span>
+                          {post.author.followers.toLocaleString()} followers
+                        </span>
                         <span>•</span>
                         <span>{post.author.posts} posts</span>
                       </div>
@@ -284,8 +365,12 @@ const PostDetail: React.FC = () => {
 
                 {/* Tags */}
                 <div className={styles.tags}>
-                  {post.tags.map((tag, index) => (
-                    <Link key={index} to={`/explore?tag=${tag}`} className={styles.tag}>
+                  {postData?.tags.map((tag, index) => (
+                    <Link
+                      key={index}
+                      to={`/explore?tag=${tag}`}
+                      className={styles.tag}
+                    >
                       {tag}
                     </Link>
                   ))}
@@ -293,37 +378,44 @@ const PostDetail: React.FC = () => {
               </header>
 
               {/* Article Content */}
-              <div 
+              <div
                 className={styles.content}
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: postData?.storyContent }}
               />
 
               {/* Article Footer */}
               <footer className={styles.articleFooter}>
                 <div className={styles.engagement}>
-                  <button 
+                  <button
                     onClick={handleLike}
-                    className={`${styles.engagementButton} ${isLiked ? styles.liked : ''}`}
+                    className={`${styles.engagementButton} ${
+                      isLiked ? styles.liked : ""
+                    }`}
                   >
-                    <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
+                    <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
                     <span>{likeCount.toLocaleString()}</span>
                   </button>
                   <button className={styles.engagementButton}>
                     <MessageCircle size={20} />
                     <span>{post.stats.comments}</span>
                   </button>
-                  <button 
+                  <button
                     onClick={handleShare}
                     className={styles.engagementButton}
                   >
                     <Share2 size={20} />
                     <span>{post.stats.shares}</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={`${styles.engagementButton} ${isBookmarked ? styles.bookmarked : ''}`}
+                    className={`${styles.engagementButton} ${
+                      isBookmarked ? styles.bookmarked : ""
+                    }`}
                   >
-                    <Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} />
+                    <Bookmark
+                      size={20}
+                      fill={isBookmarked ? "currentColor" : "none"}
+                    />
                   </button>
                 </div>
                 <button className={styles.moreButton}>
@@ -338,12 +430,12 @@ const PostDetail: React.FC = () => {
                 Discussion ({post.stats.comments})
               </h2>
               <div className={styles.commentForm}>
-                <UserAvatar 
+                <UserAvatar
                   src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150"
                   size="md"
                 />
                 <div className={styles.commentInput}>
-                  <textarea 
+                  <textarea
                     placeholder="Share your thoughts..."
                     className={styles.commentTextarea}
                   />
@@ -353,7 +445,9 @@ const PostDetail: React.FC = () => {
                 </div>
               </div>
               <div className={styles.commentsPlaceholder}>
-                <p>Comments will be displayed here once the backend is connected.</p>
+                <p>
+                  Comments will be displayed here once the backend is connected.
+                </p>
               </div>
             </section>
           </main>
@@ -361,7 +455,7 @@ const PostDetail: React.FC = () => {
           {/* Sidebar */}
           <aside className={styles.sidebar}>
             {/* Stats Panel */}
-            <StatsPanel 
+            <StatsPanel
               variant="post"
               data={{
                 views: post.stats.views,
@@ -372,7 +466,7 @@ const PostDetail: React.FC = () => {
                 priceChange: post.stats.priceChange,
                 holders: post.stats.holders,
                 publishedAt: post.publishedAt,
-                readTime: post.readTime
+                readTime: post.readTime,
               }}
             />
 
@@ -383,7 +477,9 @@ const PostDetail: React.FC = () => {
                 <div className={styles.coinPrice}>
                   <Coins size={20} />
                   <div className={styles.priceInfo}>
-                    <span className={styles.price}>${post.stats.coinPrice}</span>
+                    <span className={styles.price}>
+                      ${post.stats.coinPrice}
+                    </span>
                     <span className={styles.priceChange}>
                       +{post.stats.priceChange}%
                     </span>
@@ -409,7 +505,7 @@ const PostDetail: React.FC = () => {
             <div className={`${styles.authorCard} glass`}>
               <h3 className={styles.sidebarTitle}>About the Author</h3>
               <div className={styles.authorDetails}>
-                <UserAvatar 
+                <UserAvatar
                   src={post.author.avatar}
                   alt={post.author.name}
                   size="xl"
@@ -418,11 +514,15 @@ const PostDetail: React.FC = () => {
                 <p className={styles.authorCardBio}>{post.author.bio}</p>
                 <div className={styles.authorCardStats}>
                   <div className={styles.authorCardStat}>
-                    <span className={styles.statValue}>{post.author.followers.toLocaleString()}</span>
+                    <span className={styles.statValue}>
+                      {post.author.followers.toLocaleString()}
+                    </span>
                     <span className={styles.statLabel}>Followers</span>
                   </div>
                   <div className={styles.authorCardStat}>
-                    <span className={styles.statValue}>{post.author.posts}</span>
+                    <span className={styles.statValue}>
+                      {post.author.posts}
+                    </span>
                     <span className={styles.statLabel}>Posts</span>
                   </div>
                 </div>
@@ -437,11 +537,11 @@ const PostDetail: React.FC = () => {
           <h2 className={styles.relatedTitle}>Related Stories</h2>
           <div className={styles.relatedGrid}>
             {relatedPosts.map((relatedPost) => (
-              <PostCard 
-                key={relatedPost.id} 
+              <PostCard
+                key={relatedPost.id}
                 post={{
                   ...relatedPost,
-                  stats: relatedPost.stats
+                  stats: relatedPost.stats,
                 }}
                 showStats={false}
               />

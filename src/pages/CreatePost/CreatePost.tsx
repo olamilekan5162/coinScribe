@@ -1,154 +1,148 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Send, Eye } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { usePosts } from '../../hooks/usePosts';
-import PostEditor from '../../components/PostEditor/PostEditor';
-import styles from './CreatePost.module.css';
-import { useWalletClient } from 'wagmi';
-import { createCoinCall, DeployCurrency } from '@zoralabs/coins-sdk';
-import { Address } from 'viem';
-import { simulateContract, writeContract } from 'wagmi/actions';
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Save, Send, Eye } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+// import { usePosts } from "../../hooks/usePosts";
+import { supabase } from "../../lib/supabase";
+import PostEditor from "../../components/PostEditor/PostEditor";
+import styles from "./CreatePost.module.css";
+import { useWalletClient } from "wagmi";
+import { PinataSDK } from "pinata";
+import { createCoin, DeployCurrency } from "@zoralabs/coins-sdk";
+import { baseSepolia } from "viem/chains";
+import { createPublicClient, http, Address } from "viem";
 
 interface PostData {
   title: string;
   content: string;
+  imageLink: string;
   tags: string[];
 }
 
 const CreatePost: React.FC = () => {
   const navigate = useNavigate();
   const { data: walletClient } = useWalletClient();
-  const { user, isConnected } = useAuth();
-  const { createPost } = usePosts();
+  const { address, user, isConnected } = useAuth();
+  // const { createPost } = usePosts();
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [publishSuccess, setPublishSuccess] = useState<boolean>(false);
-  const [coinParams, setCoinParams] = useState<any | null>(null);
-  const [writeConfig, setWriteConfig] = useState<any | null>(null);
 
   // Redirect if not connected
   React.useEffect(() => {
     if (!isConnected || !user) {
-      navigate('/');
+      navigate("/");
     }
   }, [isConnected, user, navigate]);
 
   const handleSave = async (postData: PostData): Promise<void> => {
-    console.log('Saving draft:', postData);
-    // Here you would typically save to your backend/blockchain
-    
-    // Show success feedback
-    const event = new CustomEvent('showToast', {
-      detail: { message: 'Draft saved successfully!', type: 'success' }
+    console.log("Saving draft:", postData);
+    const event = new CustomEvent("showToast", {
+      detail: { message: "Draft saved successfully!", type: "success" },
     });
     window.dispatchEvent(event);
   };
 
- 
+  const fetchProfile = async (walletAddress: string) => {
+    try {
+      console.log("fetching profile");
 
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("wallet_address", walletAddress.toLowerCase())
+        .single();
 
+      if (error) {
+        if (error.code === "PGRST116") {
+          console.log("User not found");
+        } else {
+          throw error;
+        }
+        return;
+      }
 
-
-
-
+      return data;
+    } catch (err) {
+      console.log("Failed to load profile" + err.message);
+    }
+  };
 
   const handlePublish = async (postData: PostData): Promise<void> => {
     if (!user || !walletClient) {
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: 'Please connect your wallet to publish', type: 'error' }
-      }));
-      return;
+      throw new Error("User and  walletclient not available");
     }
-
-    if (!postData.title.trim() ) {
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: 'Please enter a title for your post', type: 'error' }
-      }));
-      return;
-    }
-
-    if (!postData.content.trim()) {
-     window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: 'Please write some content for your post', type: 'error' }
-      }));
-      return;
-    }
-
     setIsPublishing(true);
-    
+
     try {
-      const postId = await createPost({
-        title: postData.title,
-        content: postData.content,
-        tags: postData.tags,
-      }, user.id);
-      
-      console.log('Published post with ID:', postId);
-      // setPublishSuccess(true);
-      
-      // Show success and redirect
-      // setTimeout(() => {
-      //   navigate(`/post/${postId}`);
-      // }, 1500);
-      
-      // create coin Params
-      const coinParamsData = {
+      const pinata = new PinataSDK({
+        pinataJwt: import.meta.env.VITE_PINATA_JWT,
+        pinataGateway: import.meta.env.VITE_PINATA_GATEWAY_URL,
+      });
+
+      const creatorData = await fetchProfile(address);
+
+      const imageUrl = await pinata.upload.public.url(postData.imageLink);
+      console.log("image uploaded to pinata first");
+
+      const upload = await pinata.upload.public.json({
         name: postData.title,
-        symbol: postData.title.slice(0, 5).toUpperCase(),
-        // uri: link,
-        payoutRecipient: walletClient.account.address as Address,
-        platformReferrer: '0x0000000000000000000000000000000000000000',
-        currency: DeployCurrency.ZORA
+        description: postData.title,
+        image: `https://black-far-coyote-812.mypinata.cloud/ipfs/${imageUrl.cid}`,
+        animation_url: `https://black-far-coyote-812.mypinata.cloud/ipfs/${imageUrl.cid}`,
+        content: {
+          mime: "image/png",
+          uri: `https://black-far-coyote-812.mypinata.cloud/ipfs/${imageUrl.cid}`,
+        },
+        properties: {
+          category: "story",
+        },
+        storyContent: postData.content,
+        creator: creatorData,
+        created: Date.now(),
+        tags: postData.tags,
+      });
+
+      console.log(upload);
+
+      const publicClient = createPublicClient({
+        chain: baseSepolia,
+        transport: http(),
+      });
+
+      // create coin Params
+      const coinParams = {
+        name: postData.title,
+        symbol: postData.title.slice(0, 3).toUpperCase(),
+        uri: `https://black-far-coyote-812.mypinata.cloud/ipfs/${upload.cid}`,
+        chainId: baseSepolia.id,
+        payoutRecipient: address as Address,
+        platformReferrer:
+          "0x4E998Ae5B55e492d0d2665CA854B03625f7aCf33" as Address,
+        currency: DeployCurrency.ETH,
       };
 
-      // contract call configuration
+      console.log("creating coin");
 
-     const contractCallParams = await createCoinCall(coinParamsData);
+      const result = await createCoin(coinParams, walletClient, publicClient, {
+        gasMultiplier: 120,
+      });
 
-setCoinParams(coinParamsData);
-setWriteConfig(contractCallParams);
+      console.log(result);
 
-window.dispatchEvent(new CustomEvent('showToast', {
-  detail: {
-    message: 'Post saved! Now confirming coin mint transaction...',
-    type: 'info'
-  }
-}));
-
-// Simulate
-const simulation = await simulateContract({
-  ...contractCallParams,
-});
-
-// Write
-const result = await writeContract(simulation.request);
-
-console.log('✅ Coin minted! TX Hash:', result);
-
-setPublishSuccess(true);
-
-window.dispatchEvent(new CustomEvent('showToast', {
-  detail: {
-    message: 'Post published and coin minted!',
-    type: 'success'
-  }
-}));
-
-setTimeout(() => {
-  navigate(`/post/${postId}`);
-}, 1500);
-
-
-
+      setPublishSuccess(true);
     } catch (error) {
-      console.error('Publishing failed:', error);
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { 
-          message: error instanceof Error ? error.message : 'Failed to publish post. Please try again.', 
-          type: 'error' 
-        }
-      }));
+      console.error("Publishing failed:", error);
+      window.dispatchEvent(
+        new CustomEvent("showToast", {
+          detail: {
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to publish post. Please try again.",
+            type: "error",
+          },
+        })
+      );
     } finally {
       setIsPublishing(false);
     }
@@ -167,13 +161,16 @@ setTimeout(() => {
               <div className={styles.successIcon}>
                 <Send size={48} />
               </div>
-              <h2 className={styles.successTitle}>Post Published Successfully!</h2>
+              <h2 className={styles.successTitle}>
+                Post Published Successfully!
+              </h2>
               <p className={styles.successText}>
-                Your story is now live on the blockchain and available to readers worldwide.
+                Your story is now live on the blockchain and available to
+                readers worldwide.
               </p>
               <div className={styles.successActions}>
-                <button 
-                  onClick={() => navigate('/dashboard')}
+                <button
+                  onClick={() => navigate("/dashboard")}
                   className={`${styles.successButton} glow`}
                 >
                   View in Dashboard
@@ -191,10 +188,7 @@ setTimeout(() => {
       <div className="container">
         {/* Header */}
         <div className={styles.header}>
-          <button 
-            onClick={() => navigate(-1)}
-            className={styles.backButton}
-          >
+          <button onClick={() => navigate(-1)} className={styles.backButton}>
             <ArrowLeft size={20} />
             <span>Back</span>
           </button>
@@ -210,7 +204,9 @@ setTimeout(() => {
           <div className={styles.guidelinesList}>
             <div className={styles.guideline}>
               <Eye size={16} />
-              <span>Your content will be permanently stored on the blockchain</span>
+              <span>
+                Your content will be permanently stored on the blockchain
+              </span>
             </div>
             <div className={styles.guideline}>
               <Save size={16} />
@@ -225,7 +221,7 @@ setTimeout(() => {
 
         {/* Editor */}
         <div className={styles.editorContainer}>
-          <PostEditor 
+          <PostEditor
             onSave={handleSave}
             onPublish={handlePublish}
             isPublishing={isPublishing}
@@ -240,7 +236,9 @@ setTimeout(() => {
             <li>Add relevant tags to help readers discover your content</li>
             <li>Include images to make your posts more visually appealing</li>
             <li>Write compelling excerpts - they appear in post previews</li>
-            <li>Engage with your readers through comments to build community</li>
+            <li>
+              Engage with your readers through comments to build community
+            </li>
           </ul>
         </div>
       </div>
