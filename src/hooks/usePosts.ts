@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { pinataService } from '../lib/pinata';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import { PinataSDK } from "pinata";
 
 interface Author {
   id: string;
@@ -52,19 +52,21 @@ export const usePosts = () => {
     try {
       setLoading(true);
       let query = supabase
-        .from('posts')
-        .select(`
+        .from("posts")
+        .select(
+          `
           *,
           author:users(id, full_name, profile_image, wallet_address)
-        `)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .order("created_at", { ascending: false });
 
       if (filters?.authorId) {
-        query = query.eq('author_id', filters.authorId);
+        query = query.eq("author_id", filters.authorId);
       }
 
       if (filters?.isPublished !== undefined) {
-        query = query.eq('is_published', filters.isPublished);
+        query = query.eq("is_published", filters.isPublished);
       }
 
       if (filters?.limit) {
@@ -72,7 +74,10 @@ export const usePosts = () => {
       }
 
       if (filters?.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+        query = query.range(
+          filters.offset,
+          filters.offset + (filters.limit || 10) - 1
+        );
       }
 
       const { data, error } = await query;
@@ -81,18 +86,22 @@ export const usePosts = () => {
 
       setPosts(data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch posts');
+      setError(err instanceof Error ? err.message : "Failed to fetch posts");
     } finally {
       setLoading(false);
     }
   };
 
-  const createPost = async (postData: CreatePostData, authorId: string): Promise<string> => {
+  const createPost = async (
+    postData: CreatePostData,
+    authorId: string
+  ): Promise<string> => {
     try {
       // Generate excerpt from content
-      const excerpt = postData.content
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .substring(0, 200) + '...';
+      const excerpt =
+        postData.content
+          .replace(/<[^>]*>/g, "") // Remove HTML tags
+          .substring(0, 200) + "...";
 
       // Calculate read time (average 200 words per minute)
       const wordCount = postData.content.split(/\s+/).length;
@@ -109,11 +118,11 @@ export const usePosts = () => {
         imageUrl: postData.imageUrl,
       };
 
-      const pinataCid = await pinataService.pinPostMetadata(metadata);
+      const pinataCid = await PinataSDK.pinPostMetadata(metadata);
 
       // Save to Supabase
       const { data, error } = await supabase
-        .from('posts')
+        .from("posts")
         .insert({
           title: postData.title,
           content: postData.content,
@@ -134,11 +143,13 @@ export const usePosts = () => {
       if (error) throw error;
 
       // Update user's post count
-      await supabase.rpc('increment_user_posts', { user_id: authorId });
+      await supabase.rpc("increment_user_posts", { user_id: authorId });
 
       return data.id;
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to create post');
+      throw new Error(
+        err instanceof Error ? err.message : "Failed to create post"
+      );
     }
   };
 
@@ -146,51 +157,49 @@ export const usePosts = () => {
     try {
       // Check if already liked
       const { data: existingLike } = await supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', userId)
+        .from("post_likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", userId)
         .single();
 
       if (existingLike) {
         // Unlike
         await supabase
-          .from('post_likes')
+          .from("post_likes")
           .delete()
-          .eq('post_id', postId)
-          .eq('user_id', userId);
+          .eq("post_id", postId)
+          .eq("user_id", userId);
 
-        await supabase.rpc('decrement_post_likes', { post_id: postId });
+        await supabase.rpc("decrement_post_likes", { post_id: postId });
         return false;
       } else {
         // Like
         await supabase
-          .from('post_likes')
+          .from("post_likes")
           .insert({ post_id: postId, user_id: userId });
 
-        await supabase.rpc('increment_post_likes', { post_id: postId });
+        await supabase.rpc("increment_post_likes", { post_id: postId });
         return true;
       }
     } catch (err) {
-      throw new Error('Failed to toggle like');
+      throw new Error("Failed to toggle like");
     }
   };
 
   const incrementViews = async (postId: string, userId?: string) => {
     try {
       // Add view record
-      await supabase
-        .from('post_views')
-        .insert({
-          post_id: postId,
-          user_id: userId || null,
-          ip_address: null, // Could be implemented with server-side tracking
-        });
+      await supabase.from("post_views").insert({
+        post_id: postId,
+        user_id: userId || null,
+        ip_address: null, // Could be implemented with server-side tracking
+      });
 
       // Increment view count
-      await supabase.rpc('increment_post_views', { post_id: postId });
+      await supabase.rpc("increment_post_views", { post_id: postId });
     } catch (err) {
-      console.error('Failed to increment views:', err);
+      console.error("Failed to increment views:", err);
     }
   };
 

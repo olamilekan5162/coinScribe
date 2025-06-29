@@ -97,21 +97,16 @@ interface PostData {
 }
 
 const PostDetail: React.FC = () => {
-  // const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(2340);
   const [postData, setPostData] = useState<PostData | null>(null);
 
-  // const pinata = new PinataSDK({
-  //   pinataJwt: import.meta.env.VITE_PINATA_JWT,
-  //   pinataGateway: import.meta.env.VITE_PINATA_GATEWAY_URL,
-  // });
-
   const fetchSingleCoin = async () => {
     const response = await getCoin({
-      address: "0xDECBAcd31b57452fC2CfAE8f4aEbB8D8d1757357",
+      address: `${id}`,
       chain: baseSepolia.id,
     });
     return response.data?.zora20Token;
@@ -135,53 +130,10 @@ const PostDetail: React.FC = () => {
     fetchData();
   }, []);
 
-  // Mock post data - in a real app, this would come from an API/blockchain
   const post: Post = {
     id: 1,
     title: "The Future of Decentralized Content: Why Web3 Publishing Matters",
     content: `
-      <p>The landscape of digital publishing is undergoing a revolutionary transformation. As we stand at the crossroads of technological innovation and creative expression, decentralized publishing platforms are emerging as the next evolution of how we create, share, and monetize content.</p>
-      
-      <h2>The Problem with Traditional Publishing</h2>
-      <p>Traditional publishing platforms have long held the keys to content distribution, wielding unprecedented power over creators and their audiences. From arbitrary content moderation to unfair revenue sharing, creators have been at the mercy of centralized authorities who can change the rules overnight.</p>
-      
-      <blockquote>
-        "The future belongs to platforms that empower creators, not exploit them." - Decentralized Creator Manifesto
-      </blockquote>
-      
-      <p>Consider the countless stories of creators who built massive followings on traditional platforms, only to lose everything due to algorithm changes, account suspensions, or platform shutdowns. This isn't just about individual creators—it's about the preservation of human knowledge and creative expression.</p>
-      
-      <h2>Enter Blockchain-Based Publishing</h2>
-      <p>Blockchain technology offers a compelling alternative: true ownership of content, transparent monetization, and censorship resistance. When you publish on a decentralized platform, your content lives on the blockchain forever, protected from the whims of corporate decision-makers.</p>
-      
-      <p>But it's not just about storage. Smart contracts enable new economic models that were previously impossible:</p>
-      
-      <ul>
-        <li><strong>Direct creator-to-reader payments:</strong> No middlemen taking substantial cuts</li>
-        <li><strong>Community ownership:</strong> Readers can become stakeholders in the content they love</li>
-        <li><strong>Programmable royalties:</strong> Creators earn from every interaction with their work</li>
-        <li><strong>Transparent metrics:</strong> All engagement data is publicly verifiable</li>
-      </ul>
-      
-      <h2>The Social Token Revolution</h2>
-      <p>Perhaps the most exciting development is the emergence of social tokens—cryptocurrencies tied to individual creators or communities. These tokens create a new paradigm where success is shared between creators and their most dedicated supporters.</p>
-      
-      <p>Imagine buying tokens from your favorite writer when they're just starting out, then watching those tokens appreciate as their work gains recognition. It's like having equity in a creator's success, creating aligned incentives that traditional platforms could never offer.</p>
-      
-      <h2>Challenges and Solutions</h2>
-      <p>Of course, decentralized publishing isn't without its challenges. User experience, scalability, and mainstream adoption remain significant hurdles. However, innovative solutions are emerging:</p>
-      
-      <p><strong>Layer 2 Solutions:</strong> Technologies like Polygon and Optimism are making blockchain interactions faster and cheaper, removing barriers to entry for average users.</p>
-      
-      <p><strong>Improved UX:</strong> New platforms are abstracting away the complexity of blockchain interactions, making Web3 publishing as simple as traditional platforms.</p>
-      
-      <p><strong>Cross-Platform Integration:</strong> Bridges between Web2 and Web3 are enabling creators to maintain their existing audiences while building on decentralized infrastructure.</p>
-      
-      <h2>The Future is Decentralized</h2>
-      <p>We're witnessing the early stages of a fundamental shift in how content is created, distributed, and monetized. The creators who embrace these new tools today will be the ones who shape the future of digital publishing.</p>
-      
-      <p>The question isn't whether decentralized publishing will succeed—it's whether you'll be part of building that future or watching from the sidelines.</p>
-      
       <p>What are your thoughts on the future of content creation? How do you see blockchain technology changing the relationship between creators and their audiences?</p>
     `,
     author: {
@@ -261,13 +213,12 @@ const PostDetail: React.FC = () => {
   const handleShare = (): void => {
     if (navigator.share) {
       navigator.share({
-        title: post.title,
-        text: post.title,
+        title: postData?.name,
+        text: postData?.name,
         url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      // Show toast notification
       const event = new CustomEvent("showToast", {
         detail: { message: "Link copied to clipboard!", type: "success" },
       });
@@ -285,7 +236,6 @@ const PostDetail: React.FC = () => {
 
   return (
     <div className={styles.postDetail}>
-      {/* Header */}
       <div className={styles.header}>
         <div className="container">
           <button onClick={() => navigate(-1)} className={styles.backButton}>
@@ -335,7 +285,7 @@ const PostDetail: React.FC = () => {
 
                 <div className={styles.authorSection}>
                   <Link
-                    to={`/profile/${post.author.name}`}
+                    to={`/profile/${postData?.creator.wallet_address}`}
                     className={styles.authorInfo}
                   >
                     <UserAvatar

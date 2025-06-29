@@ -31,7 +31,6 @@ interface ToolbarAction {
 }
 
 interface PostEditorProps {
-  onSave?: (data: PostData) => void;
   onPublish?: (data: PostData) => void;
   initialContent?: string;
   initialTitle?: string;
@@ -39,7 +38,6 @@ interface PostEditorProps {
 }
 
 const PostEditor: React.FC<PostEditorProps> = ({
-  onSave,
   onPublish,
   initialContent = "",
   initialTitle = "",
@@ -121,7 +119,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
   };
 
   const handleSave = (): void => {
-    onSave?.({ title, content, tags, imageLink });
+    console.log("saving");
   };
 
   const handlePublish = (): void => {
