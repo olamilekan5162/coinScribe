@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 import PostCard from "../../components/PostCard/PostCard";
 import styles from "./Explore.module.css";
-import { baseSepolia } from "viem/chains";
-import { getCoins } from "@zoralabs/coins-sdk";
-import { supabase } from "../../lib/supabase";
+import { usePosts } from "../../hooks/usePosts";
 
 interface Author {
   name: string;
@@ -62,61 +60,7 @@ const Explore: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("trending");
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [posts, setPosts] = useState<any[]>([]);
-
-  const fetchPostsAddress = async () => {
-    try {
-      console.log("fetching addresses");
-      const { data, error } = await supabase.from("posts").select("*");
-      if (error) throw error;
-      const postAddress = data.map((item) => ({
-        chainId: +baseSepolia.id,
-        collectionAddress: item.coin_address.toString().toLowerCase() || "",
-      }));
-      return postAddress;
-      // console.log(postAddress);
-    } catch (err) {
-      console.log("Failed to load profile" + err);
-    }
-  };
-
-  const fetchMultipleCoins = async () => {
-    const collectionAddresses = await fetchPostsAddress();
-    const response = await getCoins({
-      coins: collectionAddresses || [],
-    });
-    return response.data?.zora20Tokens;
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const coins = await fetchMultipleCoins();
-
-        if (!coins) {
-          console.log("No coins found");
-          return;
-        }
-
-        const coinDataArray = await Promise.all(
-          coins.map(async (coin) => {
-            const response = await fetch(`${coin.tokenUri}`);
-            if (!response.ok) {
-              throw new Error("Unable to fetch tokenUri");
-            }
-            const data = await response.json();
-            return { ...coin, data };
-          })
-        );
-        console.log(coinDataArray);
-        setPosts(coinDataArray);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const { isLoading, posts, error } = usePosts();
 
   // Mock data for posts
   const allPosts: Post[] = [
@@ -256,7 +200,7 @@ const Explore: React.FC = () => {
   ];
 
   const categories: Category[] = [
-    { id: "all", label: "All Stories", count: allPosts.length },
+    { id: "all", label: "All Stories", count: posts.length },
     { id: "web3", label: "Web3", count: 12 },
     { id: "defi", label: "DeFi", count: 8 },
     { id: "nft", label: "NFTs", count: 15 },

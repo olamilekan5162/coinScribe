@@ -1,35 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import PostCard from '../PostCard/PostCard';
-import styles from './FeaturedCarousel.module.css';
-
-interface Post {
-  id: number;
-  title: string;
-  excerpt: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags: string[];
-  stats: {
-    likes: number;
-    comments: number;
-    shares: number;
-  };
-  coinData?: {
-    price: number;
-    change: number;
-    holders: number;
-    trending?: boolean;
-  };
-}
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import PostCard from "../PostCard/PostCard";
+import styles from "./FeaturedCarousel.module.css";
 
 interface FeaturedCarouselProps {
-  posts: Post[];
+  posts: any[];
 }
 
 const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ posts }) => {
@@ -66,7 +41,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ posts }) => {
   return (
     <div className={styles.carousel}>
       <div className={styles.carouselContainer}>
-        <div 
+        <div
           className={styles.carouselTrack}
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
@@ -105,7 +80,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ posts }) => {
               key={index}
               onClick={() => goToSlide(index)}
               className={`${styles.indicator} ${
-                index === currentIndex ? styles.indicatorActive : ''
+                index === currentIndex ? styles.indicatorActive : ""
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

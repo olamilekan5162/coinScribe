@@ -4,37 +4,6 @@ import { Heart, MessageCircle, Share2, TrendingUp, Coins } from "lucide-react";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import styles from "./PostCard.module.css";
 
-// interface Author {
-//   name: string;
-//   avatar: string;
-// }
-
-// interface Stats {
-//   likes: number;
-//   comments: number;
-//   shares: number;
-// }
-
-// interface CoinData {
-//   price: number;
-//   change: number;
-//   holders: number;
-//   trending?: boolean;
-// }
-
-// interface Post {
-//   id: number;
-//   title: string;
-//   excerpt: string;
-//   author: Author;
-//   publishedAt: string;
-//   readTime: number;
-//   image?: string;
-//   tags?: string[];
-//   stats: Stats;
-//   coinData?: CoinData;
-// }
-
 interface PostCardProps {
   post: any;
   variant?: "default" | "featured";
@@ -46,18 +15,11 @@ const PostCard: React.FC<PostCardProps> = ({
   variant = "default",
   showStats = true,
 }) => {
-  // const {
-  //   id,
-  //   title,
-  //   excerpt,
-  //   author,
-  //   publishedAt,
-  //   readTime,
-  //   image,
-  //   tags,
-  //   stats,
-  //   coinData
-  // } = post;
+  const removeTags = (str: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(str, "text/html");
+    return doc.body.textContent;
+  };
 
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -127,7 +89,9 @@ const PostCard: React.FC<PostCardProps> = ({
           <h2 className={styles.title}>{post?.name}</h2>
         </Link>
 
-        <p className={styles.excerpt}>{post?.description?.slice(0, 100)}</p>
+        <p className={styles.excerpt}>
+          {removeTags(post?.description?.slice(0, 1000))}
+        </p>
 
         {post?.data?.tags && (
           <div className={styles.tags}>
@@ -155,7 +119,9 @@ const PostCard: React.FC<PostCardProps> = ({
             </button>
           </div>
           <div className={styles.coinStats}>
-            <span className={styles.holders}>{44} holders</span>
+            <span className={styles.holders}>
+              {post?.uniqueHolders} holders
+            </span>
           </div>
         </div>
       </div>
