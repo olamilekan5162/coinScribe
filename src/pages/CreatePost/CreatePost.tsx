@@ -23,7 +23,6 @@ const CreatePost: React.FC = () => {
   const navigate = useNavigate();
   const { data: walletClient } = useWalletClient();
   const { address, user, isConnected } = useAuth();
-  // const { createPost } = usePosts();
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [publishSuccess, setPublishSuccess] = useState<boolean>(false);
 
@@ -34,13 +33,15 @@ const CreatePost: React.FC = () => {
     }
   }, [isConnected, user, navigate]);
 
-  const handleSave = async (postData: PostData): Promise<void> => {
-    console.log("Saving draft:", postData);
-    const event = new CustomEvent("showToast", {
-      detail: { message: "Draft saved successfully!", type: "success" },
-    });
-    window.dispatchEvent(event);
-  };
+  const pinata = new PinataSDK({
+    pinataJwt: import.meta.env.VITE_PINATA_JWT,
+    pinataGateway: import.meta.env.VITE_PINATA_GATEWAY_URL,
+  });
+
+  const publicClient = createPublicClient({
+    chain: baseSepolia,
+    transport: http(),
+  });
 
   const fetchProfile = async (walletAddress: string) => {
     try {
@@ -60,7 +61,6 @@ const CreatePost: React.FC = () => {
         }
         return;
       }
-
       return data;
     } catch (err) {
       console.log("Failed to load profile" + err.message);
@@ -71,22 +71,21 @@ const CreatePost: React.FC = () => {
     if (!user || !walletClient) {
       throw new Error("User and  walletclient not available");
     }
+
+    if (!postData) {
+      console.log("Enter complete post details");
+    }
+
     setIsPublishing(true);
 
     try {
-      const pinata = new PinataSDK({
-        pinataJwt: import.meta.env.VITE_PINATA_JWT,
-        pinataGateway: import.meta.env.VITE_PINATA_GATEWAY_URL,
-      });
-
-      const creatorData = await fetchProfile(address);
+      const creatorData = await fetchProfile(`${address}`);
 
       const imageUrl = await pinata.upload.public.url(postData.imageLink);
-      console.log("image uploaded to pinata first");
 
       const upload = await pinata.upload.public.json({
         name: postData.title,
-        description: postData.title,
+        description: postData.content,
         image: `https://black-far-coyote-812.mypinata.cloud/ipfs/${imageUrl.cid}`,
         animation_url: `https://black-far-coyote-812.mypinata.cloud/ipfs/${imageUrl.cid}`,
         content: {
@@ -103,11 +102,6 @@ const CreatePost: React.FC = () => {
       });
 
       console.log(upload);
-
-      const publicClient = createPublicClient({
-        chain: baseSepolia,
-        transport: http(),
-      });
 
       // create coin Params
       const coinParams = {
@@ -129,20 +123,25 @@ const CreatePost: React.FC = () => {
 
       console.log(result);
 
+      const { data, error } = await supabase
+        .from("posts")
+        .insert([
+          {
+            title: postData.title,
+            coin_address: result?.address,
+            wallet_address: result?.deployment?.caller,
+            author_id: creatorData.id,
+          },
+        ])
+        .select();
+
+      if (error) throw new Error("Coin not updated in supabase");
+
+      console.log(data);
+
       setPublishSuccess(true);
     } catch (error) {
       console.error("Publishing failed:", error);
-      window.dispatchEvent(
-        new CustomEvent("showToast", {
-          detail: {
-            message:
-              error instanceof Error
-                ? error.message
-                : "Failed to publish post. Please try again.",
-            type: "error",
-          },
-        })
-      );
     } finally {
       setIsPublishing(false);
     }
@@ -221,11 +220,7 @@ const CreatePost: React.FC = () => {
 
         {/* Editor */}
         <div className={styles.editorContainer}>
-          <PostEditor
-            onSave={handleSave}
-            onPublish={handlePublish}
-            isPublishing={isPublishing}
-          />
+          <PostEditor onPublish={handlePublish} isPublishing={isPublishing} />
         </div>
 
         {/* Publishing Tips */}

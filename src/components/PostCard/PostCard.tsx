@@ -1,86 +1,57 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, TrendingUp, Coins } from 'lucide-react';
-import UserAvatar from '../UserAvatar/UserAvatar';
-import styles from './PostCard.module.css';
-
-interface Author {
-  name: string;
-  avatar: string;
-}
-
-interface Stats {
-  likes: number;
-  comments: number;
-  shares: number;
-}
-
-interface CoinData {
-  price: number;
-  change: number;
-  holders: number;
-  trending?: boolean;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  excerpt: string;
-  author: Author;
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags?: string[];
-  stats: Stats;
-  coinData?: CoinData;
-}
+import React from "react";
+import { Link } from "react-router-dom";
+import { Heart, MessageCircle, Share2, TrendingUp, Coins } from "lucide-react";
+import UserAvatar from "../UserAvatar/UserAvatar";
+import styles from "./PostCard.module.css";
 
 interface PostCardProps {
-  post: Post;
-  variant?: 'default' | 'featured';
+  post: any;
+  variant?: "default" | "featured";
   showStats?: boolean;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ 
-  post, 
-  variant = 'default',
-  showStats = true 
+const PostCard: React.FC<PostCardProps> = ({
+  post,
+  variant = "default",
+  showStats = true,
 }) => {
-  const {
-    id,
-    title,
-    excerpt,
-    author,
-    publishedAt,
-    readTime,
-    image,
-    tags,
-    stats,
-    coinData
-  } = post;
+  const removeTags = (str: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(str, "text/html");
+    return doc.body.textContent;
+  };
 
   const formatDate = (date: string): string => {
-    return new Date(date).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
     });
   };
 
   return (
     <article className={`${styles.card} ${styles[variant]} glass`}>
-      {image && (
+      {post && (
         <div className={styles.imageContainer}>
-          <img src={image} alt={title} className={styles.image} />
+          <img
+            src={post?.mediaContent?.originalUri}
+            alt={post?.name}
+            className={styles.image}
+          />
           <div className={styles.imageOverlay}>
-            {coinData && (
+            {/* {coinData && (
               <div className={styles.coinPrice}>
                 <Coins size={16} />
                 <span>${coinData.price}</span>
-                <span className={coinData.change >= 0 ? styles.priceUp : styles.priceDown}>
-                  {coinData.change >= 0 ? '+' : ''}{coinData.change}%
+                <span
+                  className={
+                    coinData.change >= 0 ? styles.priceUp : styles.priceDown
+                  }
+                >
+                  {coinData.change >= 0 ? "+" : ""}
+                  {coinData.change}%
                 </span>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       )}
@@ -88,21 +59,25 @@ const PostCard: React.FC<PostCardProps> = ({
       <div className={styles.content}>
         <div className={styles.header}>
           <div className={styles.authorInfo}>
-            <UserAvatar 
-              src={author.avatar} 
-              alt={author.name}
+            <UserAvatar
+              src={post?.data?.creator?.profile_image}
+              alt={post?.data?.creator?.full_name}
               size="sm"
             />
             <div className={styles.authorMeta}>
-              <span className={styles.authorName}>{author.name}</span>
+              <span className={styles.authorName}>
+                {post?.data?.creator?.full_name}
+              </span>
               <div className={styles.postMeta}>
-                <span>{formatDate(publishedAt)}</span>
+                <span>{formatDate(post?.createdAt)}</span>
                 <span>•</span>
-                <span>{readTime} min read</span>
+                <span>
+                  {Math.floor(post?.description?.length / 200)} min read
+                </span>
               </div>
             </div>
           </div>
-          {coinData?.trending && (
+          {post?.uniqueHolders > 1 && (
             <div className={styles.trendingBadge}>
               <TrendingUp size={12} />
               <span>Trending</span>
@@ -110,15 +85,17 @@ const PostCard: React.FC<PostCardProps> = ({
           )}
         </div>
 
-        <Link to={`/post/${id}`} className={styles.titleLink}>
-          <h2 className={styles.title}>{title}</h2>
+        <Link to={`/post/${post?.address}`} className={styles.titleLink}>
+          <h2 className={styles.title}>{post?.name}</h2>
         </Link>
 
-        <p className={styles.excerpt}>{excerpt}</p>
+        <p className={styles.excerpt}>
+          {removeTags(post?.description?.slice(0, 1000))}
+        </p>
 
-        {tags && (
+        {post?.data?.tags && (
           <div className={styles.tags}>
-            {tags.slice(0, 3).map((tag, index) => (
+            {post?.data?.tags?.slice(0, 3).map((tag: any, index: number) => (
               <span key={index} className={styles.tag}>
                 {tag}
               </span>
@@ -126,31 +103,27 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         )}
 
-        {showStats && stats && (
-          <div className={styles.stats}>
-            <div className={styles.engagement}>
-              <button className={styles.statButton}>
-                <Heart size={16} />
-                <span>{stats.likes}</span>
-              </button>
-              <button className={styles.statButton}>
-                <MessageCircle size={16} />
-                <span>{stats.comments}</span>
-              </button>
-              <button className={styles.statButton}>
-                <Share2 size={16} />
-                <span>{stats.shares}</span>
-              </button>
-            </div>
-            {coinData && (
-              <div className={styles.coinStats}>
-                <span className={styles.holders}>
-                  {coinData.holders} holders
-                </span>
-              </div>
-            )}
+        <div className={styles.stats}>
+          <div className={styles.engagement}>
+            <button className={styles.statButton}>
+              <Heart size={16} />
+              <span>{12}</span>
+            </button>
+            <button className={styles.statButton}>
+              <MessageCircle size={16} />
+              <span>{6}</span>
+            </button>
+            <button className={styles.statButton}>
+              <Share2 size={16} />
+              <span>{3}</span>
+            </button>
           </div>
-        )}
+          <div className={styles.coinStats}>
+            <span className={styles.holders}>
+              {post?.uniqueHolders} holders
+            </span>
+          </div>
+        </div>
       </div>
     </article>
   );

@@ -11,6 +11,7 @@ interface UserSetupModalProps {
 const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,12 +26,18 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
       return;
     }
 
+    if (!bio) {
+      setError("io is required");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
     try {
       await (auth as any).createUser({
         full_name: fullName.trim(),
+        bio: bio,
         email: email.trim() || undefined,
         profile_image: profileImage.trim() || undefined,
       });
@@ -120,6 +127,17 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
               onChange={(e) => setEmail(e.target.value)}
               className={styles.input}
               placeholder="Enter your email address"
+            />
+          </div>
+
+          {/* Bio */}
+          <div className={styles.field}>
+            <label className={styles.label}>Bio *</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className={styles.input}
+              placeholder="Enter a short bio of yourself"
             />
           </div>
 

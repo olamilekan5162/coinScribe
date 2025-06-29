@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useAccount, useDisconnect } from 'wagmi';
-import { supabase } from '../lib/supabase';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useAccount, useDisconnect } from "wagmi";
+import { supabase } from "../lib/supabase";
 
 interface User {
   id: string;
@@ -32,12 +32,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showUserSetupModal, setShowUserSetupModal] = useState(false);
@@ -45,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { disconnect } = useDisconnect();
 
   useEffect(() => {
-      console.log(address)
+    console.log(address);
     if (isConnected && address) {
       checkUserExists(address);
     } else {
@@ -58,13 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .from("users")
+        .select("*")
+        .eq("wallet_address", walletAddress.toLowerCase())
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking user:', error);
+      if (error && error.code !== "PGRST116") {
+        console.error("Error checking user:", error);
         return;
       }
 
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setShowUserSetupModal(true);
       }
     } catch (error) {
-      console.error('Error checking user existence:', error);
+      console.error("Error checking user existence:", error);
     } finally {
       setIsLoading(false);
     }
@@ -84,16 +86,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createUser = async (userData: {
     full_name: string;
     email?: string;
+    bio: string;
     profile_image?: string;
   }) => {
     if (!address) return;
 
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from("users")
         .insert({
           wallet_address: address.toLowerCase(),
           full_name: userData.full_name,
+          bio: userData.bio,
           email: userData.email || null,
           profile_image: userData.profile_image || null,
         })
@@ -107,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(data);
       setShowUserSetupModal(false);
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error("Error creating user:", error);
       throw error;
     }
   };
@@ -117,9 +121,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from("users")
         .update(userData)
-        .eq('id', user.id)
+        .eq("id", user.id)
         .select()
         .single();
 
@@ -129,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(data);
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
       throw error;
     }
   };
