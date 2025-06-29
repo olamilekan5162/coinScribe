@@ -19,6 +19,7 @@ import PostCard from "../../components/PostCard/PostCard";
 import styles from "./PostDetail.module.css";
 import { getCoin } from "@zoralabs/coins-sdk";
 import { baseSepolia } from "viem/chains";
+import { usePosts } from "../../hooks/usePosts";
 
 interface Author {
   name: string;
@@ -103,6 +104,7 @@ const PostDetail: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(2340);
   const [postData, setPostData] = useState<PostData | null>(null);
+  const { posts } = usePosts();
 
   const fetchSingleCoin = async () => {
     const response = await getCoin({
@@ -484,17 +486,10 @@ const PostDetail: React.FC = () => {
 
         {/* Related Posts */}
         <section className={styles.relatedPosts}>
-          <h2 className={styles.relatedTitle}>Related Stories</h2>
+          <h2 className={styles.relatedTitle}>Other post from Author</h2>
           <div className={styles.relatedGrid}>
-            {relatedPosts.map((relatedPost) => (
-              <PostCard
-                key={relatedPost.id}
-                post={{
-                  ...relatedPost,
-                  stats: relatedPost.stats,
-                }}
-                showStats={false}
-              />
+            {posts.slice(0, 2)?.map((post: any) => (
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         </section>
