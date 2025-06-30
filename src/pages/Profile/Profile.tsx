@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import {
   MapPin,
   Calendar,
   Link as LinkIcon,
   Edit3,
-  Settings,
+  LogOut,
   Share2,
   MoreHorizontal,
 } from "lucide-react";
@@ -35,7 +35,10 @@ interface ProfileUser {
 const Profile: React.FC = () => {
   const { address } = useParams<{ address: string }>();
   const { user: currentUser } = useAuth();
-  const { posts, isLoading: postsLoading, fetchPosts } = usePosts();
+  const { posts, isLoading: postsLoading } = usePosts();
+  const userPosts = posts.filter(
+    (mypost) => address?.toLocaleLowerCase() === mypost?.creatorAddress
+  );
   const {
     isFollowing,
     toggleFollow,
@@ -44,6 +47,7 @@ const Profile: React.FC = () => {
 
   const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const { logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "drafts" | "liked">(
     "posts"
@@ -53,7 +57,7 @@ const Profile: React.FC = () => {
     if (address) {
       fetchProfileUser(address);
     }
-  }, [address]);
+  }, [address, posts]);
 
   // useEffect(() => {
   //   if (profileUser) {
@@ -220,10 +224,10 @@ const Profile: React.FC = () => {
           <div className={styles.profileActions}>
             {isOwnProfile ? (
               <>
-                <Link to="/settings" className={styles.editButton}>
-                  <Settings size={20} />
-                  <span>Settings</span>
-                </Link>
+                <button className={styles.editButton} onClick={logout}>
+                  <LogOut size={20} />
+                  <span>Logout</span>
+                </button>
                 <Link to="/create" className={`${styles.createButton} glow`}>
                   <Edit3 size={20} />
                   <span>Write</span>
@@ -262,7 +266,7 @@ const Profile: React.FC = () => {
                   activeTab === "posts" ? styles.tabActive : ""
                 }`}
               >
-                Posts ({profileUser.posts_count})
+                Posts ({userPosts.length})
               </button>
               {isOwnProfile && (
                 <button
@@ -288,9 +292,9 @@ const Profile: React.FC = () => {
             <div className={styles.postsSection}>
               {postsLoading ? (
                 <div className={styles.loading}>Loading posts...</div>
-              ) : posts.length > 0 ? (
+              ) : userPosts.length > 0 ? (
                 <div className={styles.postsGrid}>
-                  {posts.map((post) => (
+                  {userPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))}
                 </div>

@@ -105,6 +105,9 @@ const PostDetail: React.FC = () => {
   const [likeCount, setLikeCount] = useState<number>(2340);
   const [postData, setPostData] = useState<PostData | null>(null);
   const { posts } = usePosts();
+  const otherPosts = posts.filter(
+    (post) => post.creatorAddress === postData.creator.wallet_address
+  );
 
   const fetchSingleCoin = async () => {
     const response = await getCoin({
@@ -486,9 +489,9 @@ const PostDetail: React.FC = () => {
 
         {/* Related Posts */}
         <section className={styles.relatedPosts}>
-          <h2 className={styles.relatedTitle}>Other post from Author</h2>
+          <h2 className={styles.relatedTitle}>Other posts from Author</h2>
           <div className={styles.relatedGrid}>
-            {posts.slice(0, 2)?.map((post: any) => (
+            {otherPosts.slice(0, 2)?.map((post: any) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>

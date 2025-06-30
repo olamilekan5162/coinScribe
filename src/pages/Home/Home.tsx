@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   TrendingUp,
@@ -15,37 +15,7 @@ import FeaturedCarousel from "../../components/FeaturedCarousel/FeaturedCarousel
 import PostCard from "../../components/PostCard/PostCard";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import styles from "./Home.module.css";
-
-interface Author {
-  name: string;
-  avatar: string;
-}
-
-interface Stats {
-  likes: number;
-  comments: number;
-  shares: number;
-}
-
-interface CoinData {
-  price: number;
-  change: number;
-  holders: number;
-  trending?: boolean;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  excerpt: string;
-  author: Author;
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags: string[];
-  stats: Stats;
-  coinData?: CoinData;
-}
+import { supabase } from "../../lib/supabase";
 
 interface Creator {
   name: string;
@@ -63,150 +33,24 @@ interface PlatformStat {
 
 const Home: React.FC = () => {
   const { isLoading, error, posts } = usePosts();
+  const [users, setUsers] = useState<any>(null);
 
-  // Convert database posts to component format
-  // const convertPost = (dbPost: any): Post => ({
-  //   id: parseInt(dbPost.id),
-  //   title: dbPost.title,
-  //   excerpt: dbPost.excerpt,
-  //   author: {
-  //     name: dbPost.author.full_name,
-  //     avatar: dbPost.author.profile_image || "",
-  //   },
-  //   publishedAt: dbPost.created_at,
-  //   readTime: dbPost.read_time,
-  //   image: dbPost.image_url || undefined,
-  //   tags: dbPost.tags,
-  //   stats: {
-  //     likes: dbPost.likes_count,
-  //     comments: dbPost.comments_count,
-  //     shares: dbPost.shares_count,
-  //   },
-  //   coinData: {
-  //     price: dbPost.coin_price,
-  //     change: dbPost.price_change,
-  //     holders: dbPost.holders_count,
-  //     trending: dbPost.price_change > 10,
-  //   },
-  // });
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase.from("users").select("*");
+      if (error) {
+        console.log(error);
+      }
+      console.log(data);
+      setUsers(data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
-  // Mock data for featured posts (fallback if no posts from DB)
-  const mockFeaturedPosts: Post[] = [
-    {
-      id: 1,
-      title: "The Future of Decentralized Content: Why Web3 Publishing Matters",
-      excerpt:
-        "Exploring how blockchain technology is revolutionizing the way we create, share, and monetize content. From censorship resistance to creator economics, discover the paradigm shift happening right now.",
-      author: {
-        name: "Alex Chen",
-        avatar:
-          "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-20",
-      readTime: 12,
-      image:
-        "https://images.pexels.com/photos/7433829/pexels-photo-7433829.jpeg?auto=compress&cs=tinysrgb&w=800",
-      tags: ["Web3", "Publishing", "Blockchain"],
-      stats: { likes: 2340, comments: 89, shares: 156 },
-      coinData: {
-        price: 45.67,
-        change: 12.5,
-        holders: 1250,
-        trending: true,
-      },
-    },
-    {
-      id: 2,
-      title: "Building Community Through Tokenized Stories",
-      excerpt:
-        "How creators are using social tokens to build deeper connections with their audience and create sustainable revenue streams.",
-      author: {
-        name: "Sarah Martinez",
-        avatar:
-          "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-19",
-      readTime: 8,
-      image:
-        "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800",
-      tags: ["Community", "Tokens", "Creator Economy"],
-      stats: { likes: 1890, comments: 67, shares: 123 },
-      coinData: {
-        price: 23.45,
-        change: 8.2,
-        holders: 890,
-      },
-    },
-  ];
-
-  const trendingPosts: Post[] = [
-    {
-      id: 3,
-      title: "DeFi Yield Farming: A Beginner's Complete Guide",
-      excerpt:
-        "Everything you need to know about yield farming, from the basics to advanced strategies for maximizing returns.",
-      author: {
-        name: "Michael Kim",
-        avatar:
-          "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-18",
-      readTime: 15,
-      image:
-        "https://images.pexels.com/photos/6801648/pexels-photo-6801648.jpeg?auto=compress&cs=tinysrgb&w=600",
-      tags: ["DeFi", "Yield Farming", "Guide"],
-      stats: { likes: 3200, comments: 124, shares: 289 },
-      coinData: {
-        price: 78.9,
-        change: 15.8,
-        holders: 1890,
-      },
-    },
-    {
-      id: 4,
-      title: "NFT Art: Where Creativity Meets Blockchain",
-      excerpt:
-        "Exploring the intersection of digital art and blockchain technology, and how NFTs are changing the art world forever.",
-      author: {
-        name: "Emma Thompson",
-        avatar:
-          "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-17",
-      readTime: 10,
-      image:
-        "https://images.pexels.com/photos/7567456/pexels-photo-7567456.jpeg?auto=compress&cs=tinysrgb&w=600",
-      tags: ["NFT", "Art", "Digital Creativity"],
-      stats: { likes: 2750, comments: 98, shares: 201 },
-      coinData: {
-        price: 34.2,
-        change: -2.1,
-        holders: 1120,
-      },
-    },
-    {
-      id: 5,
-      title: "Smart Contracts Explained: Code as Law",
-      excerpt:
-        "Understanding how smart contracts work, their benefits, limitations, and real-world applications across industries.",
-      author: {
-        name: "David Rodriguez",
-        avatar:
-          "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-16",
-      readTime: 11,
-      image:
-        "https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&cs=tinysrgb&w=600",
-      tags: ["Smart Contracts", "Ethereum", "Development"],
-      stats: { likes: 1980, comments: 76, shares: 134 },
-      coinData: {
-        price: 56.78,
-        change: 7.4,
-        holders: 756,
-      },
-    },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const topCreators: Creator[] = [
     {
@@ -354,39 +198,40 @@ const Home: React.FC = () => {
             </p>
           </div>
           <div className={styles.creatorsGrid}>
-            {topCreators.map((creator, index) => (
-              <div key={index} className={`${styles.creatorCard} glass`}>
-                <div className={styles.creatorRank}>#{index + 1}</div>
-                <UserAvatar
-                  src={creator.avatar}
-                  alt={creator.name}
-                  size="lg"
-                  showBorder
-                />
-                <h3 className={styles.creatorName}>{creator.name}</h3>
-                <div className={styles.creatorStats}>
-                  <div className={styles.creatorStat}>
-                    <span className={styles.creatorStatValue}>
-                      {creator.followers.toLocaleString()}
-                    </span>
-                    <span className={styles.creatorStatLabel}>Followers</span>
+            {users &&
+              users.reverse().map((creator: any, index: number) => (
+                <div key={index} className={`${styles.creatorCard} glass`}>
+                  <div className={styles.creatorRank}>#{index + 1}</div>
+                  <UserAvatar
+                    src={creator.profile_image}
+                    alt={creator.full_name}
+                    size="lg"
+                    showBorder
+                  />
+                  <h3 className={styles.creatorName}>{creator.full_name}</h3>
+                  <div className={styles.creatorStats}>
+                    <div className={styles.creatorStat}>
+                      <span className={styles.creatorStatValue}>
+                        {creator.followers_count.toLocaleString()}
+                      </span>
+                      <span className={styles.creatorStatLabel}>Followers</span>
+                    </div>
+                    <div className={styles.creatorStat}>
+                      <span className={styles.creatorStatValue}>
+                        ${creator.total_earnings.toLocaleString()}
+                      </span>
+                      <span className={styles.creatorStatLabel}>Earned</span>
+                    </div>
+                    <div className={styles.creatorStat}>
+                      <span className={styles.creatorStatValue}>
+                        {creator.posts_count}
+                      </span>
+                      <span className={styles.creatorStatLabel}>Stories</span>
+                    </div>
                   </div>
-                  <div className={styles.creatorStat}>
-                    <span className={styles.creatorStatValue}>
-                      ${creator.totalEarnings.toLocaleString()}
-                    </span>
-                    <span className={styles.creatorStatLabel}>Earned</span>
-                  </div>
-                  <div className={styles.creatorStat}>
-                    <span className={styles.creatorStatValue}>
-                      {creator.postsCount}
-                    </span>
-                    <span className={styles.creatorStatLabel}>Stories</span>
-                  </div>
+                  <button className={styles.followButton}>Follow</button>
                 </div>
-                <button className={styles.followButton}>Follow</button>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </section>
