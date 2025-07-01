@@ -123,6 +123,10 @@ const PostEditor: React.FC<PostEditorProps> = ({
   };
 
   const handlePublish = (): void => {
+    if (!title || !content || !tags || !imageLink) {
+      console.log("a component is missing");
+      return;
+    }
     onPublish?.({ title, content, tags, imageLink });
     console.log({ title, content, tags });
   };

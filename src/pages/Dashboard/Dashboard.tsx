@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Plus,
@@ -19,6 +19,9 @@ import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import styles from "./Dashboard.module.css";
+import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabase";
+import { usePosts } from "../../hooks/usePosts";
 
 interface User {
   name: string;
@@ -79,6 +82,44 @@ interface FilterOption {
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("published");
   const [filterBy, setFilterBy] = useState<string>("all");
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const { posts } = usePosts();
+  const { address } = useAuth();
+  const userPosts = posts.filter(
+    (mypost: any) => address?.toLocaleLowerCase() === mypost?.creatorAddress
+  );
+
+  useEffect(() => {
+    if (address) {
+      fetchProfileUser(address);
+    }
+    console.log(profileUser);
+  }, [address]);
+
+  const fetchProfileUser = async (walletAddress: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("wallet_address", walletAddress.toLowerCase())
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          console.log("User not found");
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      setProfileUser(data);
+    } catch (err) {
+      console.log(
+        err instanceof Error ? err.message : "Failed to load profile"
+      );
+    }
+  };
 
   // Mock user data
   const userData: User = {
@@ -201,7 +242,7 @@ const Dashboard: React.FC = () => {
   };
 
   const tabs: Tab[] = [
-    { id: "published", label: "Published", count: publishedPosts.length },
+    { id: "published", label: "Published", count: userPosts.length },
     { id: "drafts", label: "Drafts", count: draftPosts.length },
     { id: "analytics", label: "Analytics", count: null },
   ];
@@ -237,30 +278,30 @@ const Dashboard: React.FC = () => {
           <div className={styles.headerContent}>
             <div className={styles.userInfo}>
               <UserAvatar
-                src={userData.avatar}
-                alt={userData.name}
+                src={profileUser?.profile_image}
+                alt={profileUser?.full_name}
                 size="xl"
                 showBorder
               />
               <div className={styles.userMeta}>
-                <h1 className={styles.userName}>{userData.name}</h1>
-                <p className={styles.userBio}>{userData.bio}</p>
+                <h1 className={styles.userName}>{profileUser?.full_name}</h1>
+                <p className={styles.userBio}>{profileUser?.bio}</p>
                 <div className={styles.userStats}>
                   <div className={styles.userStat}>
                     <span className={styles.statValue}>
-                      {formatNumber(userData.followers)}
+                      {profileUser?.followers_count}
                     </span>
                     <span className={styles.statLabel}>Followers</span>
                   </div>
                   <div className={styles.userStat}>
                     <span className={styles.statValue}>
-                      {userData.totalPosts}
+                      {profileUser?.posts_count}
                     </span>
                     <span className={styles.statLabel}>Posts</span>
                   </div>
                   <div className={styles.userStat}>
                     <span className={styles.statValue}>
-                      {formatCurrency(userData.totalEarnings)}
+                      {formatCurrency(profileUser?.total_earnings)}
                     </span>
                     <span className={styles.statLabel}>Earned</span>
                   </div>
@@ -364,12 +405,12 @@ const Dashboard: React.FC = () => {
           <div className={styles.contentArea}>
             {activeTab === "published" && (
               <div className={styles.postsGrid}>
-                {publishedPosts.map((post) => (
+                {userPosts.map((post) => (
                   <div key={post.id} className={styles.postItem}>
                     <PostCard post={post} />
                     <div className={styles.postActions}>
                       <Link
-                        to={`/post/${post.id}`}
+                        to={`/post/${post?.address}`}
                         className={styles.postAction}
                       >
                         <Eye size={16} />
