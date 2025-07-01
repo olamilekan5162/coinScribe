@@ -53,12 +53,6 @@ const Profile: React.FC = () => {
     "posts"
   );
 
-  useEffect(() => {
-    if (address) {
-      fetchProfileUser(address);
-    }
-  }, [address, posts]);
-
   // useEffect(() => {
   //   if (profileUser) {
   //     fetchPosts({
@@ -67,6 +61,12 @@ const Profile: React.FC = () => {
   //     });
   //   }
   // }, [profileUser, activeTab]);
+
+  useEffect(() => {
+    if (address) {
+      fetchProfileUser(address);
+    }
+  }, [address]);
 
   const fetchProfileUser = async (walletAddress: string) => {
     try {
