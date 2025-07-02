@@ -20,6 +20,8 @@ import styles from "./PostDetail.module.css";
 import { getCoin } from "@zoralabs/coins-sdk";
 import { baseSepolia } from "viem/chains";
 import { usePosts } from "../../hooks/usePosts";
+import { useComments } from "../../hooks/useComments";
+import { supabase } from "../../lib/supabase";
 
 interface Author {
   name: string;
@@ -53,61 +55,35 @@ interface Post {
   stats: PostStats;
 }
 
-interface RelatedPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags: string[];
-  stats: {
-    likes: number;
-    comments: number;
-    shares: number;
-  };
-}
-
-interface PostData {
-  name: string;
-  description: string;
-  image: string;
-  animation_url: string;
-  content: {
-    mime: string;
-    uri: string;
-  };
-  created: string;
-  creator: {
-    id: string;
-    bio: string;
-    wallet_address: string;
-    full_name: string;
-    email: string;
-    profile_image: string;
-  };
-  properties: {
-    category: string;
-  };
-  storyContent: string;
-  tags: string[];
-}
-
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(2340);
-  const [postData, setPostData] = useState<PostData | null>(null);
+  const [postData, setPostData] = useState<any | null>(null);
+  const [postId, setPostId] = useState<any>("");
+  const { comments } = useComments(postId);
   const { posts } = usePosts();
   const otherPosts = posts.filter(
-    (post) => post.creatorAddress === postData.creator.wallet_address
+    (post) => post.creatorAddress === postData.creatorAddress
   );
+
+  useEffect(() => {
+    const fetchPostId = async () => {
+      const { data: postId, error } = await supabase
+        .from("posts")
+        .select("id")
+        .ilike("coin_address", `${id}`)
+        .single();
+      if (error) {
+        console.log(error);
+        return;
+      }
+      setPostId(postId.id);
+    };
+    fetchPostId();
+  }, [id]);
 
   const fetchSingleCoin = async () => {
     const response = await getCoin({
@@ -125,15 +101,40 @@ const PostDetail: React.FC = () => {
         if (!response) {
           throw new Error("unable to fetch");
         }
-        const data: PostData = await response.json();
-        console.log(data);
-        setPostData(data);
+        const data: any = await response.json();
+        // console.log({ ...coin, data });
+        setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
       }
     };
     fetchData();
   }, []);
+
+  // const comments = [
+  //   {
+  //     id: 1,
+  //     author: {
+  //       name: "Jane Doe",
+  //       avatar:
+  //         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
+  //     },
+  //     content:
+  //       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Repudiandae modi minus quam nihil quidem, assumenda sunt? Dolore animi error nostrum, eius similique ducimus facere porro saepe, dolorum cupiditate veritatis iure ad reprehenderit labore fuga sed! Deserunt ipsam facilis suscipit, nihil minima magni expedita iure atque iusto culpa, eligendi consequuntur reprehenderit!",
+  //     timestamp: "2025-06-27T15:23:00Z",
+  //   },
+  //   {
+  //     id: 2,
+  //     author: {
+  //       name: "John Smith",
+  //       avatar:
+  //         "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
+  //     },
+  //     content:
+  //       "I have some questions about your project. Can you explain more?",
+  //     timestamp: "2025-06-27T16:05:00Z",
+  //   },
+  // ];
 
   const post: Post = {
     id: 1,
@@ -172,43 +173,6 @@ const PostDetail: React.FC = () => {
       totalEarnings: 3420,
     },
   };
-
-  const relatedPosts: RelatedPost[] = [
-    {
-      id: 2,
-      title: "Building Community Through Tokenized Stories",
-      excerpt:
-        "How creators are using social tokens to build deeper connections with their audience.",
-      author: {
-        name: "Sarah Martinez",
-        avatar:
-          "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-19",
-      readTime: 8,
-      image:
-        "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600",
-      tags: ["Community", "Tokens"],
-      stats: { likes: 1890, comments: 67, shares: 123 },
-    },
-    {
-      id: 3,
-      title: "Smart Contracts for Content Creators",
-      excerpt:
-        "A practical guide to using smart contracts for automated royalties and rights management.",
-      author: {
-        name: "Michael Kim",
-        avatar:
-          "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150",
-      },
-      publishedAt: "2025-01-18",
-      readTime: 10,
-      image:
-        "https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&cs=tinysrgb&w=600",
-      tags: ["Smart Contracts", "Development"],
-      stats: { likes: 1560, comments: 45, shares: 89 },
-    },
-  ];
 
   const handleLike = (): void => {
     setIsLiked(!isLiked);
@@ -290,28 +254,28 @@ const PostDetail: React.FC = () => {
 
                 <div className={styles.authorSection}>
                   <Link
-                    to={`/profile/${postData?.creator.wallet_address}`}
+                    to={`/profile/${postData?.creatorAddress}`}
                     className={styles.authorInfo}
                   >
                     <UserAvatar
-                      src={postData?.creator?.profile_image}
-                      alt={postData?.creator.full_name}
+                      src={postData?.data?.creator?.profile_image}
+                      alt={postData?.data?.creator.full_name}
                       size="lg"
                       showBorder
                     />
                     <div className={styles.authorMeta}>
                       <h3 className={styles.authorName}>
-                        {postData?.creator.full_name}
+                        {postData?.data?.creator.full_name}
                       </h3>
                       <p className={styles.authorBio}>
-                        {postData?.creator.bio}
+                        {postData?.data?.creator.bio}
                       </p>
                       <div className={styles.authorStats}>
                         <span>
-                          {post.author.followers.toLocaleString()} followers
+                          {postData?.data?.creator?.followers_count} followers
                         </span>
                         <span>•</span>
-                        <span>{post.author.posts} posts</span>
+                        <span>{otherPosts.length} posts</span>
                       </div>
                     </div>
                   </Link>
@@ -320,7 +284,7 @@ const PostDetail: React.FC = () => {
 
                 {/* Tags */}
                 <div className={styles.tags}>
-                  {postData?.tags.map((tag, index) => (
+                  {postData?.data.tags.map((tag, index) => (
                     <Link
                       key={index}
                       to={`/explore?tag=${tag}`}
@@ -335,7 +299,7 @@ const PostDetail: React.FC = () => {
               {/* Article Content */}
               <div
                 className={styles.content}
-                dangerouslySetInnerHTML={{ __html: postData?.storyContent }}
+                dangerouslySetInnerHTML={{ __html: postData?.description }}
               />
 
               {/* Article Footer */}
@@ -399,11 +363,36 @@ const PostDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className={styles.commentsPlaceholder}>
-                <p>
-                  Comments will be displayed here once the backend is connected.
-                </p>
-              </div>
+              {comments.length > 0 ? (
+                <div className={styles.commentsList}>
+                  {comments.map((comment) => (
+                    <div key={comment.id} className={styles.comment}>
+                      <UserAvatar
+                        src={comment.author.profile_image}
+                        size="md"
+                      />
+                      <div className={styles.commentContent}>
+                        <div className={styles.commentHeader}>
+                          <span className={styles.commentAuthor}>
+                            {comment.author.full_name}
+                          </span>
+                          <span className={styles.commentTimestamp}>
+                            {new Date(comment.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className={styles.commentText}>{comment.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.commentsPlaceholder}>
+                  <p>
+                    Comments will be displayed here once the backend is
+                    connected.
+                  </p>
+                </div>
+              )}
             </section>
           </main>
 
