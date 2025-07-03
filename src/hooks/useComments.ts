@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 interface Comment {
   id: string;
@@ -12,7 +12,7 @@ interface Comment {
   author: {
     id: string;
     full_name: string;
-    profile_image: string | null;
+    profile_image: string | undefined;
   };
 }
 
@@ -25,99 +25,116 @@ export const useComments = (postId: string) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('comments')
-        .select(`
+        .from("comments")
+        .select(
+          `
           *,
           author:users(id, full_name, profile_image)
-        `)
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+        `
+        )
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
+      console.log(data);
 
       setComments(data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch comments');
+      setError(err instanceof Error ? err.message : "Failed to fetch comments");
     } finally {
       setLoading(false);
     }
   };
 
-  const addComment = async (content: string, authorId: string): Promise<void> => {
+  const addComment = async (
+    content: string,
+    authorId: string
+  ): Promise<void> => {
+    console.log("adding");
+
     try {
       const { data, error } = await supabase
-        .from('comments')
+        .from("comments")
         .insert({
           post_id: postId,
           author_id: authorId,
           content: content.trim(),
         })
-        .select(`
+        .select(
+          `
           *,
           author:users(id, full_name, profile_image)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
 
-      setComments(prev => [...prev, data]);
-
-      // Increment comment count on post
-      await supabase.rpc('increment_post_comments', { post_id: postId });
+      setComments((prev) => [...prev, data]);
+      console.log("done");
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to add comment');
+      throw new Error(
+        err instanceof Error ? err.message : "Failed to add comment"
+      );
     }
   };
 
-  const likeComment = async (commentId: string, userId: string): Promise<boolean> => {
+  const likeComment = async (
+    commentId: string,
+    userId: string
+  ): Promise<boolean> => {
     try {
       // Check if already liked
       const { data: existingLike } = await supabase
-        .from('comment_likes')
-        .select('id')
-        .eq('comment_id', commentId)
-        .eq('user_id', userId)
+        .from("comment_likes")
+        .select("id")
+        .eq("comment_id", commentId)
+        .eq("user_id", userId)
         .single();
 
       if (existingLike) {
         // Unlike
         await supabase
-          .from('comment_likes')
+          .from("comment_likes")
           .delete()
-          .eq('comment_id', commentId)
-          .eq('user_id', userId);
+          .eq("comment_id", commentId)
+          .eq("user_id", userId);
 
-        await supabase.rpc('decrement_comment_likes', { comment_id: commentId });
-        
-        setComments(prev => 
-          prev.map(comment => 
-            comment.id === commentId 
+        await supabase.rpc("decrement_comment_likes", {
+          comment_id: commentId,
+        });
+
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
               ? { ...comment, likes_count: comment.likes_count - 1 }
               : comment
           )
         );
-        
+
         return false;
       } else {
         // Like
         await supabase
-          .from('comment_likes')
+          .from("comment_likes")
           .insert({ comment_id: commentId, user_id: userId });
 
-        await supabase.rpc('increment_comment_likes', { comment_id: commentId });
-        
-        setComments(prev => 
-          prev.map(comment => 
-            comment.id === commentId 
+        await supabase.rpc("increment_comment_likes", {
+          comment_id: commentId,
+        });
+
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
               ? { ...comment, likes_count: comment.likes_count + 1 }
               : comment
           )
         );
-        
+
         return true;
       }
     } catch (err) {
-      throw new Error('Failed to toggle comment like');
+      throw new Error("Failed to toggle comment like");
     }
   };
 
@@ -129,26 +146,28 @@ export const useComments = (postId: string) => {
       const subscription = supabase
         .channel(`comments:${postId}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'comments',
+            event: "INSERT",
+            schema: "public",
+            table: "comments",
             filter: `post_id=eq.${postId}`,
           },
           async (payload) => {
             // Fetch the new comment with author data
             const { data } = await supabase
-              .from('comments')
-              .select(`
+              .from("comments")
+              .select(
+                `
                 *,
                 author:users(id, full_name, profile_image)
-              `)
-              .eq('id', payload.new.id)
+              `
+              )
+              .eq("id", payload.new.id)
               .single();
 
             if (data) {
-              setComments(prev => [...prev, data]);
+              setComments((prev) => [...prev, data]);
             }
           }
         )

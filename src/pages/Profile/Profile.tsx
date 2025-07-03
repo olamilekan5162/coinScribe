@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   MapPin,
   Calendar,
@@ -85,7 +85,6 @@ const Profile: React.FC = () => {
         }
         return;
       }
-
       setProfileUser(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load profile");

@@ -11,7 +11,6 @@ export const usePosts = () => {
   const fetchPostsAddress = async () => {
     setIsLoading(true);
     try {
-      console.log("fetching addresses");
       const { data, error } = await supabase.from("posts").select("*");
       if (error) throw error;
       const postAddress = data.map((item) => ({
@@ -53,7 +52,6 @@ export const usePosts = () => {
           return { ...coin, data };
         })
       );
-      console.log(coinDataArray);
       setPosts(coinDataArray);
       setIsLoading(false);
     } catch (e) {
