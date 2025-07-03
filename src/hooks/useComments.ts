@@ -12,7 +12,7 @@ interface Comment {
   author: {
     id: string;
     full_name: string;
-    profile_image: string | null;
+    profile_image: string | undefined;
   };
 }
 
@@ -50,6 +50,8 @@ export const useComments = (postId: string) => {
     content: string,
     authorId: string
   ): Promise<void> => {
+    console.log("adding");
+
     try {
       const { data, error } = await supabase
         .from("comments")
@@ -69,9 +71,7 @@ export const useComments = (postId: string) => {
       if (error) throw error;
 
       setComments((prev) => [...prev, data]);
-
-      // Increment comment count on post
-      await supabase.rpc("increment_post_comments", { post_id: postId });
+      console.log("done");
     } catch (err) {
       throw new Error(
         err instanceof Error ? err.message : "Failed to add comment"

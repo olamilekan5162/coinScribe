@@ -22,6 +22,7 @@ import { baseSepolia } from "viem/chains";
 import { usePosts } from "../../hooks/usePosts";
 import { useComments } from "../../hooks/useComments";
 import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Author {
   name: string;
@@ -61,9 +62,11 @@ const PostDetail: React.FC = () => {
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(2340);
+  const [commentInput, setCommentInput] = useState<string>("");
+  const { user } = useAuth();
   const [postData, setPostData] = useState<any | null>(null);
   const [postId, setPostId] = useState<any>("");
-  const { comments } = useComments(postId);
+  const { comments, addComment } = useComments(postId);
   const { posts } = usePosts();
   const otherPosts = posts.filter(
     (post) => post.creatorAddress === postData.creatorAddress
@@ -110,31 +113,6 @@ const PostDetail: React.FC = () => {
     };
     fetchData();
   }, []);
-
-  // const comments = [
-  //   {
-  //     id: 1,
-  //     author: {
-  //       name: "Jane Doe",
-  //       avatar:
-  //         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
-  //     },
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Repudiandae modi minus quam nihil quidem, assumenda sunt? Dolore animi error nostrum, eius similique ducimus facere porro saepe, dolorum cupiditate veritatis iure ad reprehenderit labore fuga sed! Deserunt ipsam facilis suscipit, nihil minima magni expedita iure atque iusto culpa, eligendi consequuntur reprehenderit!",
-  //     timestamp: "2025-06-27T15:23:00Z",
-  //   },
-  //   {
-  //     id: 2,
-  //     author: {
-  //       name: "John Smith",
-  //       avatar:
-  //         "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-  //     },
-  //     content:
-  //       "I have some questions about your project. Can you explain more?",
-  //     timestamp: "2025-06-27T16:05:00Z",
-  //   },
-  // ];
 
   const post: Post = {
     id: 1,
@@ -346,20 +324,27 @@ const PostDetail: React.FC = () => {
             {/* Comments Section */}
             <section className={`${styles.comments} glass`}>
               <h2 className={styles.commentsTitle}>
-                Discussion ({post.stats.comments})
+                Discussion ({comments.length || 0})
               </h2>
               <div className={styles.commentForm}>
-                <UserAvatar
-                  src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150"
-                  size="md"
-                />
+                <UserAvatar src={user?.profile_image} size="md" />
                 <div className={styles.commentInput}>
                   <textarea
                     placeholder="Share your thoughts..."
                     className={styles.commentTextarea}
+                    value={commentInput}
+                    onChange={(e) => setCommentInput(e.target.value)}
                   />
                   <div className={styles.commentActions}>
-                    <button className={styles.commentButton}>Comment</button>
+                    <button
+                      className={styles.commentButton}
+                      onClick={() => {
+                        addComment(commentInput, user?.id);
+                        setCommentInput("");
+                      }}
+                    >
+                      Comment
+                    </button>
                   </div>
                 </div>
               </div>
@@ -368,7 +353,7 @@ const PostDetail: React.FC = () => {
                   {comments.map((comment) => (
                     <div key={comment.id} className={styles.comment}>
                       <UserAvatar
-                        src={comment.author.profile_image}
+                        src={comment?.author.profile_image}
                         size="md"
                       />
                       <div className={styles.commentContent}>
