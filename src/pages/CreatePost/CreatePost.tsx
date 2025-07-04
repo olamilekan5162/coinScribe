@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Send, Eye } from "lucide-react";
+import { ArrowLeft, Save, Send, Eye, Check, X, Loader2, Info } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 // import { usePosts } from "../../hooks/usePosts";
 import { supabase } from "../../lib/supabase";
@@ -19,12 +19,150 @@ interface PostData {
   tags: string[];
 }
 
+// Toast types
+type ToastType = 'success' | 'error' | 'loading' | 'info';
+
+interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  message?: string;
+  duration?: number;
+}
+
+interface ToastProps {
+  toast: Toast;
+  onRemove: (id: string) => void;
+}
+
+// Individual Toast Component
+const ToastComponent: React.FC<ToastProps> = ({ toast, onRemove }) => {
+  useEffect(() => {
+    if (toast.type !== 'loading' && toast.duration !== 0) {
+      const timer = setTimeout(() => {
+        onRemove(toast.id);
+      }, toast.duration || 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [toast.id, toast.duration, toast.type, onRemove]);
+
+  const getIcon = () => {
+    switch (toast.type) {
+      case 'success':
+        return <Check className="w-5 h-5 text-green-500" />;
+      case 'error':
+        return <X className="w-5 h-5 text-red-500" />;
+      case 'loading':
+        return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
+      case 'info':
+        return <Info className="w-5 h-5 text-blue-500" />;
+      default:
+        return <Info className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const getStyles = () => {
+    const baseStyles = "flex items-start gap-3 p-4 rounded-lg shadow-lg border backdrop-blur-sm transition-all duration-300";
+    
+    switch (toast.type) {
+      case 'success':
+        return `${baseStyles} bg-green-50/90 border-green-200 text-green-800`;
+      case 'error':
+        return `${baseStyles} bg-red-50/90 border-red-200 text-red-800`;
+      case 'loading':
+        return `${baseStyles} bg-blue-50/90 border-blue-200 text-blue-800`;
+      case 'info':
+        return `${baseStyles} bg-blue-50/90 border-blue-200 text-blue-800`;
+      default:
+        return `${baseStyles} bg-gray-50/90 border-gray-200 text-gray-800`;
+    }
+  };
+
+  return (
+    <div className={getStyles()}>
+      <div className="flex-shrink-0">
+        {getIcon()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-medium text-sm">
+          {toast.title}
+        </div>
+        {toast.message && (
+          <div className="text-sm opacity-90 mt-1">
+            {toast.message}
+          </div>
+        )}
+      </div>
+      {toast.type !== 'loading' && (
+        <button
+          onClick={() => onRemove(toast.id)}
+          className="flex-shrink-0 p-1 rounded-full hover:bg-black/10 transition-colors"
+        >
+          <X className="w-4 h-4 opacity-60" />
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Toast Container Component
+interface ToastContainerProps {
+  toasts: Toast[];
+  onRemove: (id: string) => void;
+}
+
+const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed top-20 right-4 z-[9999] space-y-2 max-w-sm w-full">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className="animate-in slide-in-from-right-full duration-300"
+        >
+          <ToastComponent toast={toast} onRemove={onRemove} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Hook for managing toasts
+const useToast = () => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (toast: Omit<Toast, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { ...toast, id }]);
+    return id;
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const updateToast = (id: string, updates: Partial<Toast>) => {
+    setToasts(prev => prev.map(toast => 
+      toast.id === id ? { ...toast, ...updates } : toast
+    ));
+  };
+
+  return {
+    toasts,
+    addToast,
+    removeToast,
+    updateToast
+  };
+};
+
 const CreatePost: React.FC = () => {
   const navigate = useNavigate();
   const { data: walletClient } = useWalletClient();
   const { address, user, isConnected } = useAuth();
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
-  const [publishSuccess, setPublishSuccess] = useState<boolean>(false);
+  const { toasts, addToast, removeToast } = useToast();
 
   // Redirect if not connected
   React.useEffect(() => {
@@ -69,14 +207,28 @@ const CreatePost: React.FC = () => {
 
   const handlePublish = async (postData: PostData): Promise<void> => {
     if (!user || !walletClient) {
-      throw new Error("User and  walletclient not available");
+      throw new Error("User and walletclient not available");
     }
 
     if (!postData) {
-      console.log("Enter complete post details");
+      addToast({
+        type: 'error',
+        title: 'Incomplete post details',
+        message: 'Please fill in all required fields',
+        duration: 5000
+      });
+      return;
     }
 
     setIsPublishing(true);
+
+    // Show loading toast
+    const loadingToastId = addToast({
+      type: 'loading',
+      title: 'Publishing post...',
+      message: 'Your story is being uploaded to the blockchain',
+      duration: 0 // Don't auto-remove loading toasts
+    });
 
     try {
       const creatorData = await fetchProfile(`${address}`);
@@ -139,9 +291,35 @@ const CreatePost: React.FC = () => {
 
       console.log(data);
 
-      setPublishSuccess(true);
+      // Remove loading toast
+      removeToast(loadingToastId);
+
+      // Show success toast
+      addToast({
+        type: 'success',
+        title: 'Post published successfully!',
+        message: 'Your story is now live on the blockchain',
+        duration: 5000
+      });
+
+      // Navigate to dashboard after a short delay
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+
     } catch (error) {
       console.error("Publishing failed:", error);
+      
+      // Remove loading toast
+      removeToast(loadingToastId);
+      
+      // Show error toast
+      addToast({
+        type: 'error',
+        title: 'Publishing failed',
+        message: error.message || 'There was an error publishing your post. Please try again.',
+        duration: 6000
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -149,37 +327,6 @@ const CreatePost: React.FC = () => {
 
   if (!isConnected || !user) {
     return null; // Will redirect in useEffect
-  }
-
-  if (publishSuccess) {
-    return (
-      <div className={styles.createPost}>
-        <div className="container">
-          <div className={styles.successMessage}>
-            <div className={`${styles.successCard} glass`}>
-              <div className={styles.successIcon}>
-                <Send size={48} />
-              </div>
-              <h2 className={styles.successTitle}>
-                Post Published Successfully!
-              </h2>
-              <p className={styles.successText}>
-                Your story is now live on the blockchain and available to
-                readers worldwide.
-              </p>
-              <div className={styles.successActions}>
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className={`${styles.successButton} glow`}
-                >
-                  View in Dashboard
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -237,6 +384,9 @@ const CreatePost: React.FC = () => {
           </ul>
         </div>
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 };
