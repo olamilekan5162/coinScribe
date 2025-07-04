@@ -171,12 +171,12 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
-    <div className="flex items-center justify-center py-8">
-      <Loader2 className="animate-spin mr-2" size={24} />
-      <span>{text}</span>
-    </div>
-  );
+  // const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+  //   <div className="flex items-center justify-center py-8">
+  //     <Loader2 className="animate-spin mr-2" size={24} />
+  //     <span>{text}</span>
+  //   </div>
+  // );
 
   const fetchProfileUser = async (walletAddress: string) => {
     try {

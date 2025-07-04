@@ -23,6 +23,7 @@ import { usePosts } from "../../hooks/usePosts";
 import { useComments } from "../../hooks/useComments";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import BuyModal from "../../components/BuyModal/BuyModal";
 
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,8 +33,11 @@ const PostDetail: React.FC = () => {
   const [likeCount, setLikeCount] = useState<number>(2340);
   const [commentInput, setCommentInput] = useState<string>("");
   const { user } = useAuth();
+
   const [postData, setPostData] = useState<any | null>(null);
   const [postId, setPostId] = useState<any>("");
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
+
   const { comments, addComment } = useComments(postId);
   const { posts } = usePosts();
   const otherPosts = posts.filter(
@@ -76,6 +80,7 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
+        console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
@@ -339,7 +344,10 @@ const PostDetail: React.FC = () => {
                     <span>Trending #12</span>
                   </div>
                 </div>
-                <button className={`${styles.buyButton} glow`}>
+                <button
+                  className={`${styles.buyButton} glow`}
+                  onClick={() => setBuyModalOpen(true)}
+                >
                   Buy Tokens
                 </button>
               </div>
@@ -398,6 +406,11 @@ const PostDetail: React.FC = () => {
           )}
         </section>
       </div>
+      <BuyModal
+        isOpen={buyModalOpen}
+        onClose={() => setBuyModalOpen(false)}
+        coinAddress={postData?.address}
+      />
     </div>
   );
 };

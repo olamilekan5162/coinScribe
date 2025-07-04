@@ -8,6 +8,7 @@ import {
   LogOut,
   Share2,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
@@ -17,6 +18,7 @@ import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import styles from "./Profile.module.css";
+import { getProfileBalances } from "@zoralabs/coins-sdk";
 
 interface ProfileUser {
   id: string;
@@ -53,14 +55,16 @@ const Profile: React.FC = () => {
     "posts"
   );
 
-  // useEffect(() => {
-  //   if (profileUser) {
-  //     fetchPosts({
-  //       authorId: profileUser.id,
-  //       isPublished: activeTab === 'posts' ? true : undefined
-  //     });
-  //   }
-  // }, [profileUser, activeTab]);
+  useEffect(() => {
+    async function fetchUserBalances() {
+      const response = await getProfileBalances({
+        identifier: address,
+      });
+      const profile: any = response.data?.profile?.coinBalances;
+      console.log(profile);
+    }
+    fetchUserBalances();
+  }, [address]);
 
   useEffect(() => {
     if (address) {
@@ -137,7 +141,10 @@ const Profile: React.FC = () => {
     return (
       <div className={styles.profile}>
         <div className="container">
-          <div className={styles.loading}>Loading profile...</div>
+          <div className={styles.loading}>
+            <Loader2 className="animate-spin mr-2" size={24} />
+            Loading profile...
+          </div>
         </div>
       </div>
     );
@@ -290,7 +297,10 @@ const Profile: React.FC = () => {
             {/* Posts Grid */}
             <div className={styles.postsSection}>
               {postsLoading ? (
-                <div className={styles.loading}>Loading posts...</div>
+                <div className={styles.loading}>
+                  <Loader2 className="animate-spin mr-2" size={24} />
+                  Loading posts...
+                </div>
               ) : userPosts.length > 0 ? (
                 <div className={styles.postsGrid}>
                   {userPosts.map((post) => (
