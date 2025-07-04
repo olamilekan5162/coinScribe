@@ -9,6 +9,7 @@ import {
   PenTool,
   Globe,
   Shield,
+  Loader2,
 } from "lucide-react";
 import { usePosts } from "../../hooks/usePosts";
 import FeaturedCarousel from "../../components/FeaturedCarousel/FeaturedCarousel";
@@ -25,6 +26,15 @@ interface Creator {
   postsCount: number;
 }
 
+interface User {
+  id: string;
+  full_name: string;
+  profile_image: string;
+  followers_count: number;
+  total_earnings: number;
+  posts_count: number;
+}
+
 interface PlatformStat {
   icon: React.ComponentType<{ size?: number }>;
   label: string;
@@ -33,18 +43,53 @@ interface PlatformStat {
 
 const Home: React.FC = () => {
   const { isLoading, error, posts } = usePosts();
-  const [users, setUsers] = useState<any>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState<string | null>(null);
+
+  // Loading skeleton components
+  const PostSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-4">
+      <div className="bg-gray-300 h-4 w-3/4 mb-2 rounded"></div>
+      <div className="bg-gray-300 h-4 w-1/2 mb-4 rounded"></div>
+      <div className="bg-gray-300 h-32 w-full rounded"></div>
+    </div>
+  );
+
+  const CreatorSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-4 text-center">
+      <div className="bg-gray-300 h-16 w-16 rounded-full mx-auto mb-4"></div>
+      <div className="bg-gray-300 h-4 w-3/4 mx-auto mb-2 rounded"></div>
+      <div className="bg-gray-300 h-4 w-1/2 mx-auto mb-4 rounded"></div>
+      <div className="bg-gray-300 h-8 w-full rounded"></div>
+    </div>
+  );
+
+  const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="animate-spin mr-2" size={24} />
+      <span>{text}</span>
+    </div>
+  );
 
   const fetchUsers = async () => {
     try {
+      setUsersLoading(true);
+      setUsersError(null);
+      console.log("Fetching users from Supabase...");
       const { data, error } = await supabase.from("users").select("*");
       if (error) {
+        setUsersError(error.message);
         console.log(error);
+      } else {
+        console.log(data);
+        setUsers(data);
       }
-      console.log(data);
-      setUsers(data);
     } catch (e) {
+      setUsersError('Failed to fetch users');
       console.log(e);
+    } finally {
+      setUsersLoading(false);
     }
   };
 
@@ -160,7 +205,11 @@ const Home: React.FC = () => {
               Handpicked stories from our community's most talented creators
             </p>
           </div>
-          <FeaturedCarousel posts={posts.slice(0, 2)} />
+          {isLoading ? (
+            <LoadingSpinner text="Loading featured stories..." />
+          ) : (
+            <FeaturedCarousel posts={posts.slice(0, 2)} />
+          )}
         </div>
       </section>
 
@@ -177,9 +226,17 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <div className={styles.trendingGrid}>
-            {posts.slice(0.3).map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+            {isLoading ? (
+              <>
+                <PostSkeleton />
+                <PostSkeleton />
+                <PostSkeleton />
+              </>
+            ) : (
+              posts.slice(0, 3).map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -198,9 +255,19 @@ const Home: React.FC = () => {
             </p>
           </div>
           <div className={styles.creatorsGrid}>
-            {users &&
-              users.reverse().map((creator: any, index: number) => (
-                <div key={index} className={`${styles.creatorCard} glass`}>
+            {usersLoading ? (
+              <>
+                <CreatorSkeleton />
+                <CreatorSkeleton />
+                <CreatorSkeleton />
+              </>
+            ) : usersError ? (
+              <div className="text-red-500 text-center py-8">
+                Error loading creators: {usersError}
+              </div>
+            ) : (
+              users?.reverse().map((creator: User, index: number) => (
+                <div key={creator.id} className={`${styles.creatorCard} glass`}>
                   <div className={styles.creatorRank}>#{index + 1}</div>
                   <UserAvatar
                     src={creator.profile_image}
@@ -212,26 +279,27 @@ const Home: React.FC = () => {
                   <div className={styles.creatorStats}>
                     <div className={styles.creatorStat}>
                       <span className={styles.creatorStatValue}>
-                        {creator.followers_count.toLocaleString()}
+                        {creator.followers_count?.toLocaleString() || 0}
                       </span>
                       <span className={styles.creatorStatLabel}>Followers</span>
                     </div>
                     <div className={styles.creatorStat}>
                       <span className={styles.creatorStatValue}>
-                        ${creator.total_earnings.toLocaleString()}
+                        ${creator.total_earnings?.toLocaleString() || 0}
                       </span>
                       <span className={styles.creatorStatLabel}>Earned</span>
                     </div>
                     <div className={styles.creatorStat}>
                       <span className={styles.creatorStatValue}>
-                        {creator.posts_count}
+                        {creator.posts_count || 0}
                       </span>
                       <span className={styles.creatorStatLabel}>Stories</span>
                     </div>
                   </div>
                   <button className={styles.followButton}>Follow</button>
                 </div>
-              ))}
+              ))
+            )}
           </div>
         </div>
       </section>
