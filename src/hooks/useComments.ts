@@ -36,8 +36,6 @@ export const useComments = (postId: string) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      console.log(data);
-
       setComments(data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch comments");

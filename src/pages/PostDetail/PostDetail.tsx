@@ -76,7 +76,6 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
-        console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);

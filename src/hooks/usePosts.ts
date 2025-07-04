@@ -52,8 +52,6 @@ export const usePosts = () => {
           return { ...coin, data };
         })
       );
-      console.log(coinDataArray);
-
       setPosts(coinDataArray);
       setIsLoading(false);
     } catch (e) {

@@ -76,7 +76,6 @@ const Home: React.FC = () => {
     try {
       setUsersLoading(true);
       setUsersError(null);
-      console.log("Fetching users from Supabase...");
       const { data, error } = await supabase.from("users").select("*");
       if (error) {
         setUsersError(error.message);
