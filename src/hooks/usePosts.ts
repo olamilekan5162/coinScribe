@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 import { getCoins } from "@zoralabs/coins-sdk";
 import { supabase } from "../lib/supabase";
 
@@ -14,7 +14,7 @@ export const usePosts = () => {
       const { data, error } = await supabase.from("posts").select("*");
       if (error) throw error;
       const postAddress = data.map((item) => ({
-        chainId: +baseSepolia.id,
+        chainId: base.id,
         collectionAddress: item.coin_address.toString().toLowerCase() || "",
       }));
       return postAddress;
@@ -52,6 +52,8 @@ export const usePosts = () => {
           return { ...coin, data };
         })
       );
+      console.log(coinDataArray);
+
       setPosts(coinDataArray);
       setIsLoading(false);
     } catch (e) {

@@ -82,11 +82,10 @@ const Home: React.FC = () => {
         setUsersError(error.message);
         console.log(error);
       } else {
-        console.log(data);
         setUsers(data);
       }
     } catch (e) {
-      setUsersError('Failed to fetch users');
+      setUsersError("Failed to fetch users");
       console.log(e);
     } finally {
       setUsersLoading(false);
@@ -96,33 +95,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const topCreators: Creator[] = [
-    {
-      name: "Alex Chen",
-      avatar:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-      followers: 12500,
-      totalEarnings: 45600,
-      postsCount: 24,
-    },
-    {
-      name: "Sarah Martinez",
-      avatar:
-        "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
-      followers: 9800,
-      totalEarnings: 34200,
-      postsCount: 18,
-    },
-    {
-      name: "Michael Kim",
-      avatar:
-        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150",
-      followers: 8900,
-      totalEarnings: 28900,
-      postsCount: 15,
-    },
-  ];
 
   const platformStats: PlatformStat[] = [
     { icon: Users, label: "Active Writers", value: "12,500+" },
@@ -233,9 +205,9 @@ const Home: React.FC = () => {
                 <PostSkeleton />
               </>
             ) : (
-              posts.slice(0, 3).map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))
+              posts
+                .slice(0, 3)
+                .map((post) => <PostCard key={post.id} post={post} />)
             )}
           </div>
         </div>

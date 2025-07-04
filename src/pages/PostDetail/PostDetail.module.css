@@ -429,6 +429,7 @@
   font-weight: var(--font-semibold);
   color: var(--primary-100);
   margin-bottom: var(--space-4);
+  text-align: center;
 }
 
 /* Coin Info */
@@ -510,6 +511,10 @@
   text-align: center;
 }
 
+.authorAvatar {
+  display: flex;
+  justify-content: center;
+}
 .authorCardName {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);

@@ -88,10 +88,10 @@ const Dashboard: React.FC = () => {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [draftsLoading, setDraftsLoading] = useState(false);
   const [draftsError, setDraftsError] = useState<string | null>(null);
-  
+
   const { posts, isLoading: postsLoading, error: postsError } = usePosts();
   const { address } = useAuth();
-  
+
   const userPosts = posts.filter(
     (mypost: any) => address?.toLocaleLowerCase() === mypost?.creatorAddress
   );
@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
     try {
       setProfileLoading(true);
       setProfileError(null);
-      
+
       const { data, error } = await supabase
         .from("users")
         .select("*")
@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
       setDraftsLoading(true);
       setDraftsError(null);
       // Simulate API call for drafts
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       // Your drafts fetching logic here
     } catch (err) {
       setDraftsError(
@@ -350,10 +350,10 @@ const Dashboard: React.FC = () => {
   ];
 
   const overallStats = {
-    totalEarnings: userData.totalEarnings,
-    coinPrice: userData.avgCoinPrice,
-    holders: userData.totalHolders,
-    views: publishedPosts.reduce((sum, post) => sum + post.stats.views, 0),
+    totalEarnings: 0,
+    coinPrice: 0,
+    holders: 0,
+    views: 0,
   };
 
   const tabs: Tab[] = [
@@ -394,7 +394,7 @@ const Dashboard: React.FC = () => {
         ) : profileError ? (
           <div className="text-red-500 text-center py-8">
             Error loading profile: {profileError}
-            <button 
+            <button
               onClick={() => address && fetchProfileUser(address)}
               className="block mt-2 text-blue-500 hover:underline"
             >
@@ -553,9 +553,12 @@ const Dashboard: React.FC = () => {
                     <div className={styles.emptyIcon}>
                       <Edit3 size={48} />
                     </div>
-                    <h3 className={styles.emptyTitle}>No published posts yet</h3>
+                    <h3 className={styles.emptyTitle}>
+                      No published posts yet
+                    </h3>
                     <p className={styles.emptyText}>
-                      Start creating amazing content and share it with the world.
+                      Start creating amazing content and share it with the
+                      world.
                     </p>
                     <Link to="/create" className={styles.emptyAction}>
                       Create Your First Post
@@ -598,7 +601,7 @@ const Dashboard: React.FC = () => {
                 ) : draftsError ? (
                   <div className="text-red-500 text-center py-8">
                     Error loading drafts: {draftsError}
-                    <button 
+                    <button
                       onClick={fetchDrafts}
                       className="block mt-2 text-blue-500 hover:underline"
                     >
