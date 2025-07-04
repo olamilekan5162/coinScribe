@@ -1,5 +1,6 @@
 import { createConfig, http } from "wagmi";
 import { mainnet, polygon, arbitrum, baseSepolia } from "wagmi/chains";
+import { base } from "viem/chains";
 import { createWeb3Modal } from "@web3modal/wagmi/react";
 
 // Get projectId from environment variables
@@ -8,12 +9,13 @@ const projectId =
 
 // Create wagmi config
 export const config = createConfig({
-  chains: [mainnet, polygon, arbitrum, baseSepolia],
+  chains: [mainnet, polygon, arbitrum, baseSepolia, base],
   transports: {
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [arbitrum.id]: http(),
     [baseSepolia.id]: http(),
+    [base.id]: http(),
   },
 });
 

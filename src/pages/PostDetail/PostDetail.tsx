@@ -18,43 +18,11 @@ import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import PostCard from "../../components/PostCard/PostCard";
 import styles from "./PostDetail.module.css";
 import { getCoin } from "@zoralabs/coins-sdk";
-import { baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 import { usePosts } from "../../hooks/usePosts";
 import { useComments } from "../../hooks/useComments";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
-
-interface Author {
-  name: string;
-  avatar: string;
-  bio: string;
-  followers: number;
-  following: number;
-  posts: number;
-}
-
-interface PostStats {
-  views: number;
-  likes: number;
-  comments: number;
-  shares: number;
-  coinPrice: number;
-  priceChange: number;
-  holders: number;
-  totalEarnings: number;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  author: Author;
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags: string[];
-  stats: PostStats;
-}
 
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,7 +37,9 @@ const PostDetail: React.FC = () => {
   const { comments, addComment } = useComments(postId);
   const { posts } = usePosts();
   const otherPosts = posts.filter(
-    (post) => post.creatorAddress === postData.creatorAddress
+    (post) =>
+      post.creatorAddress === postData.creatorAddress &&
+      post.address !== postData.address
   );
 
   useEffect(() => {
@@ -91,8 +61,9 @@ const PostDetail: React.FC = () => {
   const fetchSingleCoin = async () => {
     const response = await getCoin({
       address: `${id}`,
-      chain: baseSepolia.id,
+      chain: base.id,
     });
+
     return response.data?.zora20Token;
   };
 
@@ -105,7 +76,6 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
-        // console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
@@ -113,44 +83,6 @@ const PostDetail: React.FC = () => {
     };
     fetchData();
   }, []);
-
-  const post: Post = {
-    id: 1,
-    title: "The Future of Decentralized Content: Why Web3 Publishing Matters",
-    content: `
-      <p>What are your thoughts on the future of content creation? How do you see blockchain technology changing the relationship between creators and their audiences?</p>
-    `,
-    author: {
-      name: "Alex Chen",
-      avatar:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-      bio: "Web3 researcher and content creator passionate about decentralized technologies and their impact on creative industries.",
-      followers: 12500,
-      following: 340,
-      posts: 24,
-    },
-    publishedAt: "2025-01-20T10:00:00Z",
-    readTime: 12,
-    image:
-      "https://images.pexels.com/photos/7433829/pexels-photo-7433829.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    tags: [
-      "Web3",
-      "Publishing",
-      "Blockchain",
-      "Creator Economy",
-      "Decentralization",
-    ],
-    stats: {
-      views: 15420,
-      likes: 2340,
-      comments: 89,
-      shares: 156,
-      coinPrice: 45.67,
-      priceChange: 12.5,
-      holders: 1250,
-      totalEarnings: 3420,
-    },
-  };
 
   const handleLike = (): void => {
     setIsLiked(!isLiked);
@@ -193,21 +125,21 @@ const PostDetail: React.FC = () => {
       </div>
 
       {/* Hero Image */}
-      {postData?.image && (
+      {postData?.mediaContent?.originalUri && (
         <div className={styles.heroImage}>
-          <img src={postData?.image} alt={postData?.name} />
+          <img src={postData?.mediaContent?.originalUri} alt={postData?.name} />
           <div className={styles.heroOverlay}>
             <div className="container">
               <div className={styles.heroContent}>
                 <div className={styles.postMeta}>
                   <div className={styles.metaItem}>
                     <Calendar size={16} />
-                    <span>{formatDate(postData?.created)}</span>
+                    <span>{formatDate(postData?.createdAt)}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={16} />
                     <span>
-                      {Math.floor(postData?.storyContent.length / 200)} min read
+                      {Math.floor(postData?.description.length / 1000)} min read
                     </span>
                   </div>
                   <div className={styles.metaItem}>
@@ -253,7 +185,7 @@ const PostDetail: React.FC = () => {
                           {postData?.data?.creator?.followers_count} followers
                         </span>
                         <span>•</span>
-                        <span>{otherPosts.length} posts</span>
+                        <span>{otherPosts.length + 1} posts</span>
                       </div>
                     </div>
                   </Link>
@@ -262,7 +194,7 @@ const PostDetail: React.FC = () => {
 
                 {/* Tags */}
                 <div className={styles.tags}>
-                  {postData?.data.tags.map((tag, index) => (
+                  {postData?.data.tags.map((tag: any, index: number) => (
                     <Link
                       key={index}
                       to={`/explore?tag=${tag}`}
@@ -294,14 +226,14 @@ const PostDetail: React.FC = () => {
                   </button>
                   <button className={styles.engagementButton}>
                     <MessageCircle size={20} />
-                    <span>{post.stats.comments}</span>
+                    <span>{comments.length}</span>
                   </button>
                   <button
                     onClick={handleShare}
                     className={styles.engagementButton}
                   >
                     <Share2 size={20} />
-                    <span>{post.stats.shares}</span>
+                    <span>{1}</span>
                   </button>
                   <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
@@ -384,20 +316,7 @@ const PostDetail: React.FC = () => {
           {/* Sidebar */}
           <aside className={styles.sidebar}>
             {/* Stats Panel */}
-            <StatsPanel
-              variant="post"
-              data={{
-                views: post.stats.views,
-                likes: post.stats.likes,
-                comments: post.stats.comments,
-                shares: post.stats.shares,
-                coinPrice: post.stats.coinPrice,
-                priceChange: post.stats.priceChange,
-                holders: post.stats.holders,
-                publishedAt: post.publishedAt,
-                readTime: post.readTime,
-              }}
-            />
+            <StatsPanel variant="post" data={postData} />
 
             {/* Coin Info */}
             <div className={`${styles.coinInfo} glass`}>
@@ -406,18 +325,14 @@ const PostDetail: React.FC = () => {
                 <div className={styles.coinPrice}>
                   <Coins size={20} />
                   <div className={styles.priceInfo}>
-                    <span className={styles.price}>
-                      ${post.stats.coinPrice}
-                    </span>
-                    <span className={styles.priceChange}>
-                      +{post.stats.priceChange}%
-                    </span>
+                    <span className={styles.price}>${45.67}</span>
+                    <span className={styles.priceChange}>+{12}%</span>
                   </div>
                 </div>
                 <div className={styles.coinStats}>
                   <div className={styles.coinStat}>
                     <Users size={16} />
-                    <span>{post.stats.holders} holders</span>
+                    <span>{postData?.uniqueHolders} holders</span>
                   </div>
                   <div className={styles.coinStat}>
                     <TrendingUp size={16} />
@@ -434,23 +349,29 @@ const PostDetail: React.FC = () => {
             <div className={`${styles.authorCard} glass`}>
               <h3 className={styles.sidebarTitle}>About the Author</h3>
               <div className={styles.authorDetails}>
-                <UserAvatar
-                  src={post.author.avatar}
-                  alt={post.author.name}
-                  size="xl"
-                />
-                <h4 className={styles.authorCardName}>{post.author.name}</h4>
-                <p className={styles.authorCardBio}>{post.author.bio}</p>
+                <div className={styles.authorAvatar}>
+                  <UserAvatar
+                    src={postData?.data?.creator.profile_image}
+                    alt={postData?.data?.creator.full_name}
+                    size="xl"
+                  />
+                </div>
+                <h4 className={styles.authorCardName}>
+                  {postData?.data?.creator.full_name}
+                </h4>
+                <p className={styles.authorCardBio}>
+                  {postData?.data?.creator.bio}
+                </p>
                 <div className={styles.authorCardStats}>
                   <div className={styles.authorCardStat}>
                     <span className={styles.statValue}>
-                      {post.author.followers.toLocaleString()}
+                      {postData?.data?.creator.followers_count}
                     </span>
                     <span className={styles.statLabel}>Followers</span>
                   </div>
                   <div className={styles.authorCardStat}>
                     <span className={styles.statValue}>
-                      {post.author.posts}
+                      {otherPosts.length + 1}
                     </span>
                     <span className={styles.statLabel}>Posts</span>
                   </div>
@@ -463,12 +384,18 @@ const PostDetail: React.FC = () => {
 
         {/* Related Posts */}
         <section className={styles.relatedPosts}>
-          <h2 className={styles.relatedTitle}>Other posts from Author</h2>
-          <div className={styles.relatedGrid}>
-            {otherPosts.slice(0, 2)?.map((post: any) => (
-              <PostCard key={post.id} post={post} />
-            ))}
-          </div>
+          {otherPosts.length > 0 ? (
+            <>
+              <h2 className={styles.relatedTitle}>Other posts from Author</h2>
+              <div className={styles.relatedGrid}>
+                {otherPosts.slice(0, 2)?.map((post: any) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <h2 className={styles.relatedTitle}>No new post from Author</h2>
+          )}
         </section>
       </div>
     </div>

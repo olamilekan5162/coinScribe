@@ -13,43 +13,31 @@ import {
 } from "lucide-react";
 import styles from "./StatsPanel.module.css";
 
-interface StatsPanelData {
-  views?: number;
-  likes?: number;
-  comments?: number;
-  shares?: number;
-  coinPrice?: number;
-  priceChange?: number;
-  holders?: number;
-  totalEarnings?: number;
-  publishedAt?: string;
-  readTime?: number;
-}
+// interface StatsPanelData {
+//   views?: number;
+//   likes?: number;
+//   comments?: number;
+//   shares?: number;
+//   coinPrice?: number;
+//   priceChange?: number;
+//   holders?: number;
+//   totalEarnings?: number;
+//   publishedAt?: string;
+//   readTime?: number;
+// }
 
-interface StatsPanelProps {
-  variant?: "post" | "dashboard";
-  data?: StatsPanelData;
-  className?: string;
-}
+// interface StatsPanelProps {
+//   variant?: "post" | "dashboard";
+//   data?: StatsPanelData;
+//   className?: string;
+// }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({
+const StatsPanel: React.FC<any> = ({
   variant = "post",
   data = {},
   className = "",
 }) => {
-  const {
-    views = 0,
-    likes = 0,
-    comments = 0,
-    shares = 0,
-    coinPrice = 0,
-    priceChange = 0,
-    holders = 0,
-    totalEarnings = 0,
-    publishedAt,
-    readTime,
-  } = data;
-
+  const priceChange = -4;
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -84,11 +72,13 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       >
         <div className={styles.statsHeader}>
           <h3 className={styles.statsTitle}>Post Statistics</h3>
-          {publishedAt && (
+          {data && (
             <div className={styles.publishInfo}>
               <Calendar size={14} />
-              <span>{formatDate(publishedAt)}</span>
-              {readTime && <span>• {readTime} min read</span>}
+              <span>{formatDate(data?.createdAt)}</span>
+              <span>
+                • {Math.floor(data?.description.length / 1000)} min read
+              </span>
             </div>
           )}
         </div>
@@ -99,7 +89,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Eye size={16} />
             </div>
             <div className={styles.statInfo}>
-              <span className={styles.statValue}>{formatNumber(views)}</span>
+              <span className={styles.statValue}>{formatNumber(0)}</span>
               <span className={styles.statLabel}>Views</span>
             </div>
           </div>
@@ -109,7 +99,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Heart size={16} />
             </div>
             <div className={styles.statInfo}>
-              <span className={styles.statValue}>{formatNumber(likes)}</span>
+              <span className={styles.statValue}>{formatNumber(0)}</span>
               <span className={styles.statLabel}>Likes</span>
             </div>
           </div>
@@ -119,7 +109,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <MessageCircle size={16} />
             </div>
             <div className={styles.statInfo}>
-              <span className={styles.statValue}>{formatNumber(comments)}</span>
+              <span className={styles.statValue}>{formatNumber(0)}</span>
               <span className={styles.statLabel}>Comments</span>
             </div>
           </div>
@@ -129,45 +119,43 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Share2 size={16} />
             </div>
             <div className={styles.statInfo}>
-              <span className={styles.statValue}>{formatNumber(shares)}</span>
+              <span className={styles.statValue}>{formatNumber(0)}</span>
               <span className={styles.statLabel}>Shares</span>
             </div>
           </div>
         </div>
 
-        {coinPrice > 0 && (
-          <div className={styles.coinSection}>
-            <div className={styles.coinPrice}>
-              <div className={styles.coinIcon}>
-                <Coins size={16} />
-              </div>
-              <div className={styles.coinInfo}>
-                <span className={styles.coinValue}>
-                  {formatPrice(coinPrice)}
-                </span>
-                <div className={styles.coinChange}>
-                  {priceChange >= 0 ? (
-                    <TrendingUp size={12} className={styles.trendUp} />
-                  ) : (
-                    <TrendingDown size={12} className={styles.trendDown} />
-                  )}
-                  <span
-                    className={
-                      priceChange >= 0 ? styles.changeUp : styles.changeDown
-                    }
-                  >
-                    {priceChange >= 0 ? "+" : ""}
-                    {priceChange.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
+        {/* {coinPrice > 0 && ( */}
+        <div className={styles.coinSection}>
+          <div className={styles.coinPrice}>
+            <div className={styles.coinIcon}>
+              <Coins size={16} />
             </div>
-            <div className={styles.holders}>
-              <Users size={14} />
-              <span>{formatNumber(holders)} holders</span>
+            <div className={styles.coinInfo}>
+              <span className={styles.coinValue}>{formatPrice(100)}</span>
+              <div className={styles.coinChange}>
+                {priceChange >= 0 ? (
+                  <TrendingUp size={12} className={styles.trendUp} />
+                ) : (
+                  <TrendingDown size={12} className={styles.trendDown} />
+                )}
+                <span
+                  className={
+                    priceChange >= 0 ? styles.changeUp : styles.changeDown
+                  }
+                >
+                  {priceChange >= 0 ? "+" : ""}
+                  {priceChange.toFixed(2)}%
+                </span>
+              </div>
             </div>
           </div>
-        )}
+          <div className={styles.holders}>
+            <Users size={14} />
+            <span>{data?.uniqueHolders} holders</span>
+          </div>
+        </div>
+        {/* )} */}
       </div>
     );
   }
@@ -186,7 +174,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             </div>
             <div className={styles.earningInfo}>
               <span className={styles.earningValue}>
-                {formatPrice(totalEarnings)}
+                {formatPrice(data?.totalEarnings)}
               </span>
               <span className={styles.earningLabel}>Total Earnings</span>
             </div>
@@ -198,7 +186,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             </div>
             <div className={styles.earningInfo}>
               <span className={styles.earningValue}>
-                {formatPrice(coinPrice)}
+                {formatPrice(data.coinPrice)}
               </span>
               <span className={styles.earningLabel}>Avg. Coin Price</span>
             </div>
@@ -210,7 +198,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             </div>
             <div className={styles.earningInfo}>
               <span className={styles.earningValue}>
-                {formatNumber(holders)}
+                {formatNumber(data.holders)}
               </span>
               <span className={styles.earningLabel}>Total Holders</span>
             </div>
@@ -221,7 +209,9 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               <Eye size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>{formatNumber(views)}</span>
+              <span className={styles.earningValue}>
+                {formatNumber(data.views)}
+              </span>
               <span className={styles.earningLabel}>Total Views</span>
             </div>
           </div>
