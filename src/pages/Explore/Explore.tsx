@@ -7,6 +7,7 @@ import {
   Star,
   Tag,
   SlidersHorizontal,
+  Loader2,
 } from "lucide-react";
 import PostCard from "../../components/PostCard/PostCard";
 import styles from "./Explore.module.css";
@@ -61,6 +62,33 @@ const Explore: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>("trending");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const { isLoading, posts, error } = usePosts();
+
+  // Loading skeleton components
+  const PostSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-4">
+      <div className="bg-gray-300 h-4 w-3/4 mb-2 rounded"></div>
+      <div className="bg-gray-300 h-4 w-1/2 mb-4 rounded"></div>
+      <div className="bg-gray-300 h-32 w-full rounded"></div>
+    </div>
+  );
+
+  const FilterSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-4">
+      <div className="bg-gray-300 h-4 w-1/4 mb-4 rounded"></div>
+      <div className="space-y-2">
+        <div className="bg-gray-300 h-8 w-full rounded"></div>
+        <div className="bg-gray-300 h-8 w-3/4 rounded"></div>
+        <div className="bg-gray-300 h-8 w-1/2 rounded"></div>
+      </div>
+    </div>
+  );
+
+  const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="animate-spin mr-2" size={24} />
+      <span>{text}</span>
+    </div>
+  );
 
   // Mock data for posts
   const allPosts: Post[] = [
@@ -228,8 +256,10 @@ const Explore: React.FC = () => {
     "Metaverse",
   ];
 
-  // Filter and sort posts
-  const filteredPosts = allPosts.filter((post) => {
+  // Filter and sort posts - use actual posts from hook when not loading
+  const postsToUse = isLoading ? allPosts : posts;
+  
+  const filteredPosts = postsToUse.filter((post) => {
     const matchesSearch =
       searchQuery === "" ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -309,134 +339,154 @@ const Explore: React.FC = () => {
           }`}
         >
           <div className={`${styles.filtersContent} glass`}>
-            {/* Categories */}
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Categories</h3>
-              <div className={styles.categories}>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`${styles.category} ${
-                      selectedCategory === category.id
-                        ? styles.categoryActive
-                        : ""
-                    }`}
-                  >
-                    <span>{category.label}</span>
-                    <span className={styles.categoryCount}>
-                      {category.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {isLoading ? (
+              <>
+                <FilterSkeleton />
+                <FilterSkeleton />
+                <FilterSkeleton />
+              </>
+            ) : (
+              <>
+                {/* Categories */}
+                <div className={styles.filterGroup}>
+                  <h3 className={styles.filterTitle}>Categories</h3>
+                  <div className={styles.categories}>
+                    {categories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => setSelectedCategory(category.id)}
+                        className={`${styles.category} ${
+                          selectedCategory === category.id
+                            ? styles.categoryActive
+                            : ""
+                        }`}
+                      >
+                        <span>{category.label}</span>
+                        <span className={styles.categoryCount}>
+                          {category.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Sort Options */}
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Sort By</h3>
-              <div className={styles.sortOptions}>
-                {sortOptions.map((option) => {
-                  const Icon = option.icon;
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => setSortBy(option.id)}
-                      className={`${styles.sortOption} ${
-                        sortBy === option.id ? styles.sortOptionActive : ""
-                      }`}
-                    >
-                      <Icon size={16} />
-                      <span>{option.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                {/* Sort Options */}
+                <div className={styles.filterGroup}>
+                  <h3 className={styles.filterTitle}>Sort By</h3>
+                  <div className={styles.sortOptions}>
+                    {sortOptions.map((option) => {
+                      const Icon = option.icon;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setSortBy(option.id)}
+                          className={`${styles.sortOption} ${
+                            sortBy === option.id ? styles.sortOptionActive : ""
+                          }`}
+                        >
+                          <Icon size={16} />
+                          <span>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            {/* Popular Tags */}
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Popular Tags</h3>
-              <div className={styles.tags}>
-                {popularTags.map((tag, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleTagClick(tag)}
-                    className={styles.tag}
-                  >
-                    <Tag size={12} />
-                    <span>{tag}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+                {/* Popular Tags */}
+                <div className={styles.filterGroup}>
+                  <h3 className={styles.filterTitle}>Popular Tags</h3>
+                  <div className={styles.tags}>
+                    {popularTags.map((tag, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleTagClick(tag)}
+                        className={styles.tag}
+                      >
+                        <Tag size={12} />
+                        <span>{tag}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Results */}
         <div className={styles.results}>
-          <div className={styles.resultsHeader}>
-            <h2 className={styles.resultsTitle}>
-              {sortedPosts.length}{" "}
-              {sortedPosts.length === 1 ? "Story" : "Stories"}
-              {searchQuery && (
-                <span className={styles.searchQuery}> for "{searchQuery}"</span>
-              )}
-            </h2>
-            <div className={styles.resultsSort}>
-              <Filter size={16} />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className={styles.sortSelect}
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Posts Grid */}
-          {posts.length > 0 ? (
-            <div className={styles.postsGrid}>
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+          {isLoading ? (
+            <LoadingSpinner text="Loading stories..." />
+          ) : error ? (
+            <div className="text-red-500 text-center py-8">
+              Error loading stories: {error}
             </div>
           ) : (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>
-                <Search size={48} />
+            <>
+              <div className={styles.resultsHeader}>
+                <h2 className={styles.resultsTitle}>
+                  {sortedPosts.length}{" "}
+                  {sortedPosts.length === 1 ? "Story" : "Stories"}
+                  {searchQuery && (
+                    <span className={styles.searchQuery}> for "{searchQuery}"</span>
+                  )}
+                </h2>
+                <div className={styles.resultsSort}>
+                  <Filter size={16} />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className={styles.sortSelect}
+                  >
+                    {sortOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <h3 className={styles.emptyTitle}>No stories found</h3>
-              <p className={styles.emptyText}>
-                Try adjusting your search terms or filters to find what you're
-                looking for.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                }}
-                className={styles.clearFilters}
-              >
-                Clear all filters
-              </button>
-            </div>
+
+              {/* Posts Grid */}
+              {sortedPosts.length > 0 ? (
+                <div className={styles.postsGrid}>
+                  {sortedPosts.map((post) => (
+                    <PostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>
+                    <Search size={48} />
+                  </div>
+                  <h3 className={styles.emptyTitle}>No stories found</h3>
+                  <p className={styles.emptyText}>
+                    Try adjusting your search terms or filters to find what you're
+                    looking for.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                    }}
+                    className={styles.clearFilters}
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
+
+              {/* Load More */}
+              {sortedPosts.length > 0 && (
+                <div className={styles.loadMore}>
+                  <button className={`${styles.loadMoreButton} glass`}>
+                    Load More Stories
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
-
-        {/* Load More */}
-        {sortedPosts.length > 0 && (
-          <div className={styles.loadMore}>
-            <button className={`${styles.loadMoreButton} glass`}>
-              Load More Stories
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

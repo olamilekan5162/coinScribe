@@ -14,6 +14,7 @@ import {
   Filter,
   Calendar,
   BarChart3,
+  Loader2,
 } from "lucide-react";
 import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -83,21 +84,105 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("published");
   const [filterBy, setFilterBy] = useState<string>("all");
   const [profileUser, setProfileUser] = useState<any>(null);
-  const { posts } = usePosts();
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [draftsLoading, setDraftsLoading] = useState(false);
+  const [draftsError, setDraftsError] = useState<string | null>(null);
+  
+  const { posts, isLoading: postsLoading, error: postsError } = usePosts();
   const { address } = useAuth();
+  
   const userPosts = posts.filter(
     (mypost: any) => address?.toLocaleLowerCase() === mypost?.creatorAddress
   );
 
-  useEffect(() => {
-    if (address) {
-      fetchProfileUser(address);
-    }
-    console.log(profileUser);
-  }, [address]);
+  // Loading skeleton components
+  const ProfileSkeleton = () => (
+    <div className={styles.header}>
+      <div className={styles.headerContent}>
+        <div className={styles.userInfo}>
+          <div className="animate-pulse bg-gray-200 rounded-full w-24 h-24"></div>
+          <div className={styles.userMeta}>
+            <div className="animate-pulse bg-gray-200 h-8 w-48 mb-2 rounded"></div>
+            <div className="animate-pulse bg-gray-200 h-4 w-64 mb-4 rounded"></div>
+            <div className={styles.userStats}>
+              <div className={styles.userStat}>
+                <div className="animate-pulse bg-gray-200 h-6 w-16 mb-1 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-4 w-12 rounded"></div>
+              </div>
+              <div className={styles.userStat}>
+                <div className="animate-pulse bg-gray-200 h-6 w-16 mb-1 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-4 w-12 rounded"></div>
+              </div>
+              <div className={styles.userStat}>
+                <div className="animate-pulse bg-gray-200 h-6 w-20 mb-1 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-4 w-12 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="animate-pulse bg-gray-200 h-12 w-32 rounded-lg"></div>
+      </div>
+    </div>
+  );
+
+  const StatsSkeleton = () => (
+    <div className={styles.statsOverview}>
+      <div className="animate-pulse bg-gray-200 rounded-lg h-32 w-full"></div>
+      <div className={styles.quickStats}>
+        <div className="animate-pulse bg-gray-200 rounded-lg h-20 w-full"></div>
+        <div className="animate-pulse bg-gray-200 rounded-lg h-20 w-full"></div>
+        <div className="animate-pulse bg-gray-200 rounded-lg h-20 w-full"></div>
+      </div>
+    </div>
+  );
+
+  const PostSkeleton = () => (
+    <div className={styles.postItem}>
+      <div className="animate-pulse bg-gray-200 rounded-lg p-4">
+        <div className="bg-gray-300 h-4 w-3/4 mb-2 rounded"></div>
+        <div className="bg-gray-300 h-4 w-1/2 mb-4 rounded"></div>
+        <div className="bg-gray-300 h-32 w-full rounded"></div>
+      </div>
+      <div className={styles.postActions}>
+        <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+        <div className="animate-pulse bg-gray-200 h-8 w-20 rounded"></div>
+        <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+      </div>
+    </div>
+  );
+
+  const DraftSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-6">
+      <div className="flex justify-between items-start mb-4">
+        <div className="bg-gray-300 h-6 w-3/4 rounded"></div>
+        <div className="bg-gray-300 h-6 w-6 rounded"></div>
+      </div>
+      <div className="bg-gray-300 h-4 w-full mb-2 rounded"></div>
+      <div className="bg-gray-300 h-4 w-2/3 mb-4 rounded"></div>
+      <div className="flex gap-2 mb-4">
+        <div className="bg-gray-300 h-6 w-16 rounded-full"></div>
+        <div className="bg-gray-300 h-6 w-20 rounded-full"></div>
+      </div>
+      <div className="flex justify-between items-center">
+        <div className="bg-gray-300 h-8 w-32 rounded"></div>
+        <div className="bg-gray-300 h-8 w-16 rounded"></div>
+      </div>
+    </div>
+  );
+
+  const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="animate-spin mr-2" size={24} />
+      <span>{text}</span>
+    </div>
+  );
 
   const fetchProfileUser = async (walletAddress: string) => {
     try {
+      setProfileLoading(true);
+      setProfileError(null);
+      
       const { data, error } = await supabase
         .from("users")
         .select("*")
@@ -106,7 +191,7 @@ const Dashboard: React.FC = () => {
 
       if (error) {
         if (error.code === "PGRST116") {
-          console.log("User not found");
+          setProfileError("Profile not found");
         } else {
           throw error;
         }
@@ -115,11 +200,41 @@ const Dashboard: React.FC = () => {
 
       setProfileUser(data);
     } catch (err) {
-      console.log(
+      setProfileError(
         err instanceof Error ? err.message : "Failed to load profile"
       );
+    } finally {
+      setProfileLoading(false);
     }
   };
+
+  const fetchDrafts = async () => {
+    try {
+      setDraftsLoading(true);
+      setDraftsError(null);
+      // Simulate API call for drafts
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Your drafts fetching logic here
+    } catch (err) {
+      setDraftsError(
+        err instanceof Error ? err.message : "Failed to load drafts"
+      );
+    } finally {
+      setDraftsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (address) {
+      fetchProfileUser(address);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    if (activeTab === "drafts") {
+      fetchDrafts();
+    }
+  }, [activeTab]);
 
   // Mock user data
   const userData: User = {
@@ -274,91 +389,109 @@ const Dashboard: React.FC = () => {
     <div className={styles.dashboard}>
       <div className="container">
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.userInfo}>
-              <UserAvatar
-                src={profileUser?.profile_image}
-                alt={profileUser?.full_name}
-                size="xl"
-                showBorder
-              />
-              <div className={styles.userMeta}>
-                <h1 className={styles.userName}>{profileUser?.full_name}</h1>
-                <p className={styles.userBio}>{profileUser?.bio}</p>
-                <div className={styles.userStats}>
-                  <div className={styles.userStat}>
-                    <span className={styles.statValue}>
-                      {profileUser?.followers_count}
-                    </span>
-                    <span className={styles.statLabel}>Followers</span>
-                  </div>
-                  <div className={styles.userStat}>
-                    <span className={styles.statValue}>
-                      {profileUser?.posts_count}
-                    </span>
-                    <span className={styles.statLabel}>Posts</span>
-                  </div>
-                  <div className={styles.userStat}>
-                    <span className={styles.statValue}>
-                      {formatCurrency(profileUser?.total_earnings)}
-                    </span>
-                    <span className={styles.statLabel}>Earned</span>
+        {profileLoading ? (
+          <ProfileSkeleton />
+        ) : profileError ? (
+          <div className="text-red-500 text-center py-8">
+            Error loading profile: {profileError}
+            <button 
+              onClick={() => address && fetchProfileUser(address)}
+              className="block mt-2 text-blue-500 hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <div className={styles.header}>
+            <div className={styles.headerContent}>
+              <div className={styles.userInfo}>
+                <UserAvatar
+                  src={profileUser?.profile_image}
+                  alt={profileUser?.full_name}
+                  size="xl"
+                  showBorder
+                />
+                <div className={styles.userMeta}>
+                  <h1 className={styles.userName}>{profileUser?.full_name}</h1>
+                  <p className={styles.userBio}>{profileUser?.bio}</p>
+                  <div className={styles.userStats}>
+                    <div className={styles.userStat}>
+                      <span className={styles.statValue}>
+                        {profileUser?.followers_count || 0}
+                      </span>
+                      <span className={styles.statLabel}>Followers</span>
+                    </div>
+                    <div className={styles.userStat}>
+                      <span className={styles.statValue}>
+                        {profileUser?.posts_count || 0}
+                      </span>
+                      <span className={styles.statLabel}>Posts</span>
+                    </div>
+                    <div className={styles.userStat}>
+                      <span className={styles.statValue}>
+                        {formatCurrency(profileUser?.total_earnings || 0)}
+                      </span>
+                      <span className={styles.statLabel}>Earned</span>
+                    </div>
                   </div>
                 </div>
               </div>
+              <Link to="/create" className={`${styles.createButton} glow`}>
+                <Plus size={20} />
+                <span>New Post</span>
+              </Link>
             </div>
-            <Link to="/create" className={`${styles.createButton} glow`}>
-              <Plus size={20} />
-              <span>New Post</span>
-            </Link>
           </div>
-        </div>
+        )}
 
         {/* Stats Overview */}
-        <div className={styles.statsOverview}>
-          <StatsPanel
-            variant="dashboard"
-            data={overallStats}
-            className={styles.overviewPanel}
-          />
+        {profileLoading ? (
+          <StatsSkeleton />
+        ) : (
+          <div className={styles.statsOverview}>
+            <StatsPanel
+              variant="dashboard"
+              data={overallStats}
+              className={styles.overviewPanel}
+            />
 
-          <div className={styles.quickStats}>
-            <div className={`${styles.quickStat} glass`}>
-              <div className={styles.quickStatIcon}>
-                <Eye size={24} />
+            <div className={styles.quickStats}>
+              <div className={`${styles.quickStat} glass`}>
+                <div className={styles.quickStatIcon}>
+                  <Eye size={24} />
+                </div>
+                <div className={styles.quickStatInfo}>
+                  <span className={styles.quickStatValue}>
+                    {formatNumber(overallStats.views)}
+                  </span>
+                  <span className={styles.quickStatLabel}>Total Views</span>
+                </div>
               </div>
-              <div className={styles.quickStatInfo}>
-                <span className={styles.quickStatValue}>
-                  {formatNumber(overallStats.views)}
-                </span>
-                <span className={styles.quickStatLabel}>Total Views</span>
-              </div>
-            </div>
 
-            <div className={`${styles.quickStat} glass`}>
-              <div className={styles.quickStatIcon}>
-                <TrendingUp size={24} />
+              <div className={`${styles.quickStat} glass`}>
+                <div className={styles.quickStatIcon}>
+                  <TrendingUp size={24} />
+                </div>
+                <div className={styles.quickStatInfo}>
+                  <span className={styles.quickStatValue}>+24%</span>
+                  <span className={styles.quickStatLabel}>Growth Rate</span>
+                </div>
               </div>
-              <div className={styles.quickStatInfo}>
-                <span className={styles.quickStatValue}>+24%</span>
-                <span className={styles.quickStatLabel}>Growth Rate</span>
-              </div>
-            </div>
 
-            <div className={`${styles.quickStat} glass`}>
-              <div className={styles.quickStatIcon}>
-                <Users size={24} />
-              </div>
-              <div className={styles.quickStatInfo}>
-                <span className={styles.quickStatValue}>
-                  {formatNumber(userData.totalHolders)}
-                </span>
-                <span className={styles.quickStatLabel}>Token Holders</span>
+              <div className={`${styles.quickStat} glass`}>
+                <div className={styles.quickStatIcon}>
+                  <Users size={24} />
+                </div>
+                <div className={styles.quickStatInfo}>
+                  <span className={styles.quickStatValue}>
+                    {formatNumber(userData.totalHolders)}
+                  </span>
+                  <span className={styles.quickStatLabel}>Token Holders</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Content Management */}
         <div className={styles.contentSection}>
@@ -405,68 +538,74 @@ const Dashboard: React.FC = () => {
           <div className={styles.contentArea}>
             {activeTab === "published" && (
               <div className={styles.postsGrid}>
-                {userPosts.map((post) => (
-                  <div key={post.id} className={styles.postItem}>
-                    <PostCard post={post} />
-                    <div className={styles.postActions}>
-                      <Link
-                        to={`/post/${post?.address}`}
-                        className={styles.postAction}
-                      >
-                        <Eye size={16} />
-                        <span>View</span>
-                      </Link>
-                      <button className={styles.postAction}>
-                        <BarChart3 size={16} />
-                        <span>Analytics</span>
-                      </button>
-                      <button className={styles.postAction}>
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </div>
+                {postsLoading ? (
+                  <>
+                    <PostSkeleton />
+                    <PostSkeleton />
+                    <PostSkeleton />
+                  </>
+                ) : postsError ? (
+                  <div className="text-red-500 text-center py-8">
+                    Error loading posts: {postsError}
                   </div>
-                ))}
+                ) : userPosts.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>
+                      <Edit3 size={48} />
+                    </div>
+                    <h3 className={styles.emptyTitle}>No published posts yet</h3>
+                    <p className={styles.emptyText}>
+                      Start creating amazing content and share it with the world.
+                    </p>
+                    <Link to="/create" className={styles.emptyAction}>
+                      Create Your First Post
+                    </Link>
+                  </div>
+                ) : (
+                  userPosts.map((post) => (
+                    <div key={post.id} className={styles.postItem}>
+                      <PostCard post={post} />
+                      <div className={styles.postActions}>
+                        <Link
+                          to={`/post/${post?.address}`}
+                          className={styles.postAction}
+                        >
+                          <Eye size={16} />
+                          <span>View</span>
+                        </Link>
+                        <button className={styles.postAction}>
+                          <BarChart3 size={16} />
+                          <span>Analytics</span>
+                        </button>
+                        <button className={styles.postAction}>
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
             {activeTab === "drafts" && (
               <div className={styles.draftsGrid}>
-                {draftPosts.map((draft) => (
-                  <div key={draft.id} className={`${styles.draftCard} glass`}>
-                    <div className={styles.draftHeader}>
-                      <h3 className={styles.draftTitle}>{draft.title}</h3>
-                      <button className={styles.draftMenu}>
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </div>
-                    <p className={styles.draftExcerpt}>{draft.excerpt}</p>
-                    <div className={styles.draftMeta}>
-                      <div className={styles.draftTags}>
-                        {draft.tags.map((tag, index) => (
-                          <span key={index} className={styles.draftTag}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className={styles.draftDate}>
-                        <Calendar size={14} />
-                        <span>Last edited {draft.lastEdited}</span>
-                      </div>
-                    </div>
-                    <div className={styles.draftActions}>
-                      <Link
-                        to={`/create?draft=${draft.id}`}
-                        className={styles.editButton}
-                      >
-                        <Edit3 size={16} />
-                        <span>Continue Writing</span>
-                      </Link>
-                      <button className={styles.deleteButton}>Delete</button>
-                    </div>
+                {draftsLoading ? (
+                  <>
+                    <DraftSkeleton />
+                    <DraftSkeleton />
+                    <DraftSkeleton />
+                  </>
+                ) : draftsError ? (
+                  <div className="text-red-500 text-center py-8">
+                    Error loading drafts: {draftsError}
+                    <button 
+                      onClick={fetchDrafts}
+                      className="block mt-2 text-blue-500 hover:underline"
+                    >
+                      Try again
+                    </button>
                   </div>
-                ))}
-
-                {draftPosts.length === 0 && (
+                ) : draftPosts.length === 0 ? (
                   <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>
                       <Edit3 size={48} />
@@ -479,6 +618,41 @@ const Dashboard: React.FC = () => {
                       Start Writing
                     </Link>
                   </div>
+                ) : (
+                  draftPosts.map((draft) => (
+                    <div key={draft.id} className={`${styles.draftCard} glass`}>
+                      <div className={styles.draftHeader}>
+                        <h3 className={styles.draftTitle}>{draft.title}</h3>
+                        <button className={styles.draftMenu}>
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </div>
+                      <p className={styles.draftExcerpt}>{draft.excerpt}</p>
+                      <div className={styles.draftMeta}>
+                        <div className={styles.draftTags}>
+                          {draft.tags.map((tag, index) => (
+                            <span key={index} className={styles.draftTag}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className={styles.draftDate}>
+                          <Calendar size={14} />
+                          <span>Last edited {draft.lastEdited}</span>
+                        </div>
+                      </div>
+                      <div className={styles.draftActions}>
+                        <Link
+                          to={`/create?draft=${draft.id}`}
+                          className={styles.editButton}
+                        >
+                          <Edit3 size={16} />
+                          <span>Continue Writing</span>
+                        </Link>
+                        <button className={styles.deleteButton}>Delete</button>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             )}
