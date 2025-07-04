@@ -9,7 +9,7 @@ import styles from "./CreatePost.module.css";
 import { useWalletClient } from "wagmi";
 import { PinataSDK } from "pinata";
 import { createCoin, DeployCurrency } from "@zoralabs/coins-sdk";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia, mainnet } from "viem/chains";
 import { createPublicClient, http, Address } from "viem";
 
 interface PostData {
@@ -63,7 +63,7 @@ const CreatePost: React.FC = () => {
       }
       return data;
     } catch (err) {
-      console.log("Failed to load profile" + err.message);
+      console.log("Failed to load profile" + err);
     }
   };
 
@@ -108,11 +108,11 @@ const CreatePost: React.FC = () => {
         name: postData.title,
         symbol: postData.title.slice(0, 3).toUpperCase(),
         uri: `https://black-far-coyote-812.mypinata.cloud/ipfs/${upload.cid}`,
-        chainId: baseSepolia.id,
+        chainId: mainnet.id,
         payoutRecipient: address as Address,
         platformReferrer:
           "0x4E998Ae5B55e492d0d2665CA854B03625f7aCf33" as Address,
-        currency: DeployCurrency.ETH,
+        currency: DeployCurrency.ZORA,
       };
 
       console.log("creating coin");
