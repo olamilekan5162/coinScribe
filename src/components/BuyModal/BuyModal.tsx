@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { X, DollarSign } from "lucide-react";
+import { X, DollarSign, CheckCircle } from "lucide-react";
 import styles from "./BuyModal.module.css";
-import { createPublicClient, http, parseEther } from "viem";
+import { Address, createPublicClient, http, parseEther } from "viem";
 import { base } from "viem/chains";
 import { useWalletClient } from "wagmi";
-import { privateKeyToAccount } from "viem/accounts";
 import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
   const [amount, setAmount] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { data: walletClient } = useWalletClient();
   const { address } = useAuth();
-
-  useEffect(() => {
-    console.log(walletClient);
-  });
+  const navigate = useNavigate();
 
   const publicClient = createPublicClient({
     chain: base,
@@ -32,11 +30,15 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
       return;
     }
 
+    if (!walletClient) {
+      setError("No wallet client or account found");
+      return;
+    }
+
     setError("");
     setIsLoading(true);
 
     try {
-      const account = privateKeyToAccount(walletClient?.account);
       const tradeParameters: TradeParameters = {
         sell: { type: "eth" },
         buy: {
@@ -45,20 +47,23 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
         },
         amountIn: parseEther(amount), // 0.001 ETH
         slippage: 0.05, // 5% slippage tolerance
-        sender: account.address,
+        sender: address as Address,
       };
 
       const receipt = await tradeCoin({
         tradeParameters,
         walletClient,
-        account,
+        account: walletClient?.account,
         publicClient,
       });
 
-      onClose();
+      console.log(receipt);
+      setSuccess(true);
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
       setError("Transaction failed. Please try again.");
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -75,43 +80,63 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
           </button>
         </div>
 
-        <div className={styles.header}>
-          <h2 className={styles.title}>Buy Shares in This Post</h2>
-        </div>
-
-        <p className={styles.info}>
-          This blog post is tokenized. By buying, you hold a percentage of its
-          token—like owning a piece of the story. It’s similar to trading on
-          Uniswap.
-        </p>
-
-        <form onSubmit={handleBuy} className={styles.form}>
-          {error && <div className={styles.error}>{error}</div>}
-
-          <div className={styles.field}>
-            <label className={styles.label}>Amount to Buy</label>
-            <div className={styles.inputWrapper}>
-              <DollarSign size={18} className={styles.inputIcon} />
-              <input
-                type="number"
-                step="any"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className={styles.input}
-                placeholder="Enter amount"
-              />
+        {!success ? (
+          <>
+            <div className={styles.header}>
+              <h2 className={styles.title}>Buy Shares in This Post</h2>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`${styles.submitButton} glow`}
-          >
-            {isLoading ? "Processing..." : "Buy Now"}
-          </button>
-        </form>
+            <p className={styles.info}>
+              This blog post is tokenized. By buying, you hold a percentage of
+              its token—like owning a piece of the story. It’s similar to
+              trading on Uniswap.
+            </p>
+
+            <form onSubmit={handleBuy} className={styles.form}>
+              {error && <div className={styles.error}>{error}</div>}
+              {success && <div className={styles.success}>{success}</div>}
+
+              <div className={styles.field}>
+                <label className={styles.label}>Amount to Buy</label>
+                <div className={styles.inputWrapper}>
+                  <DollarSign size={18} className={styles.inputIcon} />
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className={styles.input}
+                    placeholder="Enter amount"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`${styles.submitButton} glow`}
+              >
+                {isLoading ? "Processing..." : "Buy Now"}
+              </button>
+            </form>
+          </>
+        ) : (
+          <div className={styles.successContainer}>
+            <CheckCircle size={48} className={styles.successIcon} />
+            <h3 className={styles.successTitle}>Purchase Successful!</h3>
+            <p className={styles.successMessage}>
+              You now own shares in this post. Thank you for supporting the
+              creator!
+            </p>
+            <button
+              onClick={() => navigate("/")}
+              className={`${styles.submitButton} glow`}
+            >
+              Done
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

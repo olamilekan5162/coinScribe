@@ -72,7 +72,41 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-lg);
   color: var(--accent-red);
+  text-align: center;
   font-size: var(--text-sm);
+}
+/* .success {
+  padding: var(--space-3);
+  background: #32cd32;
+  border: 1px solid rgba(15, 109, 12, 0.1);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: white;
+  font-size: var(--text-sm);
+} */
+
+.successContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.successIcon {
+  color: var(--accent-green);
+}
+
+.successTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--primary-100);
+}
+
+.successMessage {
+  font-size: var(--text-base);
+  color: var(--primary-300);
+  line-height: var(--leading-relaxed);
 }
 
 .field {
