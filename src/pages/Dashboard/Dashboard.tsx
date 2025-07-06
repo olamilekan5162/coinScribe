@@ -5,7 +5,6 @@ import {
   TrendingUp,
   Eye,
   Heart,
-  // MessageCircle,
   DollarSign,
   Coins,
   Users,
@@ -14,10 +13,7 @@ import {
   Filter,
   Calendar,
   BarChart3,
-  Loader2,
-  X,
   ArrowUpDown,
-  Wallet,
 } from "lucide-react";
 import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -26,6 +22,7 @@ import styles from "./Dashboard.module.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { usePosts } from "../../hooks/usePosts";
+import TradeModal from "../../components/TradeModal/TradeModal";
 
 interface User {
   name: string;
@@ -83,161 +80,6 @@ interface FilterOption {
   label: string;
 }
 
-// Trade Modal Component
-const TradeModal = ({ onClose, userTokens }) => {
-  const [tradeType, setTradeType] = useState("buy");
-  const [selectedToken, setSelectedToken] = useState(userTokens[0] || null);
-  const [amount, setAmount] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleTrade = async () => {
-    setIsLoading(true);
-    // Simulate trade execution
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsLoading(false);
-    onClose();
-  };
-
-  return (
-
-    <div className={styles.modalOverlay}>
-      <div className={styles.tradeModal}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>
-            <ArrowUpDown size={20} />
-            Trade Tokens
-          </h2>
-          <button onClick={onClose} className={styles.closeButton}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className={styles.modalContent}>
-          {/* Trade Type Selector */}
-          <div className={styles.tradeTypeSelector}>
-            <button
-              onClick={() => setTradeType("buy")}
-              className={`${styles.tradeTypeButton} ${
-                tradeType === "buy" ? styles.active : ""
-              }`}
-            >
-              Buy
-            </button>
-            <button
-              onClick={() => setTradeType("sell")}
-              className={`${styles.tradeTypeButton} ${
-                tradeType === "sell" ? styles.active : ""
-              }`}
-            >
-              Sell
-            </button>
-          </div>
-
-          {/* Token Selection */}
-          <div className={styles.tokenSelection}>
-            <label className={styles.inputLabel}>Select Token</label>
-            <select
-              value={selectedToken?.id || ""}
-              onChange={(e) => {
-                const token = userTokens.find(t => t.id === parseInt(e.target.value));
-                setSelectedToken(token);
-              }}
-              className={styles.tokenSelect}
-            >
-              {userTokens.map((token) => (
-                <option key={token.id} value={token.id}>
-                  {token.name} - ${token.price}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Amount Input */}
-          <div className={styles.amountInput}>
-            <label className={styles.inputLabel}>
-              Amount {tradeType === "buy" ? "(USD)" : "(Tokens)"}
-            </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={tradeType === "buy" ? "0.00" : "0"}
-              className={styles.amountField}
-            />
-          </div>
-
-          {/* Token Info */}
-          {selectedToken && (
-            <div className={styles.tokenInfo}>
-              <div className={styles.tokenInfoRow}>
-                <span>Current Price:</span>
-                <span>${selectedToken.price}</span>
-              </div>
-              <div className={styles.tokenInfoRow}>
-                <span>24h Change:</span>
-                <span className={selectedToken.change >= 0 ? styles.positive : styles.negative}>
-                  {selectedToken.change >= 0 ? "+" : ""}{selectedToken.change}%
-                </span>
-              </div>
-              <div className={styles.tokenInfoRow}>
-                <span>Your Holdings:</span>
-                <span>{selectedToken.holdings} tokens</span>
-              </div>
-            </div>
-          )}
-
-          {/* Trade Summary */}
-          {amount && selectedToken && (
-            <div className={styles.tradeSummary}>
-              <div className={styles.summaryRow}>
-                <span>You {tradeType}:</span>
-                <span>
-                  {tradeType === "buy" 
-                    ? `${(parseFloat(amount) / selectedToken.price).toFixed(4)} ${selectedToken.name}`
-                    : `${amount} ${selectedToken.name}`
-                  }
-                </span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>Total Cost:</span>
-                <span>
-                  ${tradeType === "buy" 
-                    ? amount 
-                    : (parseFloat(amount) * selectedToken.price).toFixed(2)
-                  }
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.modalFooter}>
-          <button onClick={onClose} className={styles.cancelButton}>
-            Cancel
-          </button>
-          <button
-            onClick={handleTrade}
-            disabled={!amount || !selectedToken || isLoading}
-            className={`${styles.tradeButton} ${tradeType === "buy" ? styles.buyButton : styles.sellButton}`}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin" size={16} />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Wallet size={16} />
-                {tradeType === "buy" ? "Buy Tokens" : "Sell Tokens"}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("published");
   const [filterBy, setFilterBy] = useState<string>("all");
@@ -274,7 +116,7 @@ const Dashboard: React.FC = () => {
     {
       id: 3,
       name: "CREATE",
-      price: 34.20,
+      price: 34.2,
       change: -2.1,
       holdings: 670,
     },
@@ -355,12 +197,12 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
-    <div className="flex items-center justify-center py-8">
-      <Loader2 className="animate-spin mr-2" size={24} />
-      <span>{text}</span>
-    </div>
-  );
+  // const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+  //   <div className="flex items-center justify-center py-8">
+  //     <Loader2 className="animate-spin mr-2" size={24} />
+  //     <span>{text}</span>
+  //   </div>
+  // );
 
   const fetchProfileUser = async (walletAddress: string) => {
     try {
@@ -959,13 +801,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-      {showTradeModal && (
-    <TradeModal
-    onClose={() => setShowTradeModal(false)}
-    userTokens={userTokens}
-  />
-)}
-
     </div>
   );
 };

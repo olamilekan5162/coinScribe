@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Coins,
   Users,
+  TrendingDown,
 } from "lucide-react";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -23,6 +24,7 @@ import { usePosts } from "../../hooks/usePosts";
 import { useComments } from "../../hooks/useComments";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import BuyModal from "../../components/BuyModal/BuyModal";
 
 const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,8 +34,11 @@ const PostDetail: React.FC = () => {
   const [likeCount, setLikeCount] = useState<number>(2340);
   const [commentInput, setCommentInput] = useState<string>("");
   const { user } = useAuth();
+
   const [postData, setPostData] = useState<any | null>(null);
   const [postId, setPostId] = useState<any>("");
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
+
   const { comments, addComment } = useComments(postId);
   const { posts } = usePosts();
   const otherPosts = posts.filter(
@@ -112,6 +117,12 @@ const PostDetail: React.FC = () => {
       day: "numeric",
     });
   };
+
+  const marketChange = Number(
+    (postData?.marketCapDelta24h /
+      (postData?.marketCap - postData?.marketCapDelta24h)) *
+      100
+  );
 
   return (
     <div className={styles.postDetail}>
@@ -323,10 +334,29 @@ const PostDetail: React.FC = () => {
               <h3 className={styles.sidebarTitle}>Story Token</h3>
               <div className={styles.coinDetails}>
                 <div className={styles.coinPrice}>
-                  <Coins size={20} />
+                  <div className={styles.coinIcon}>
+                    <Coins size={16} />
+                  </div>
                   <div className={styles.priceInfo}>
-                    <span className={styles.price}>${45.67}</span>
-                    <span className={styles.priceChange}>+{12}%</span>
+                    <span className={styles.price}>${postData?.marketCap}</span>
+
+                    <div className={styles.coinChange}>
+                      {marketChange >= 0 ? (
+                        <TrendingUp size={12} className={styles.trendUp} />
+                      ) : (
+                        <TrendingDown size={12} className={styles.trendDown} />
+                      )}
+                      <span
+                        className={
+                          marketChange >= 0
+                            ? styles.changeUp
+                            : styles.changeDown
+                        }
+                      >
+                        {marketChange >= 0 ? "+" : ""}
+                        {marketChange.toFixed(2)}%
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className={styles.coinStats}>
@@ -339,8 +369,11 @@ const PostDetail: React.FC = () => {
                     <span>Trending #12</span>
                   </div>
                 </div>
-                <button className={`${styles.buyButton} glow`}>
-                  Buy Tokens
+                <button
+                  className={`${styles.buyButton} glow`}
+                  onClick={() => setBuyModalOpen(true)}
+                >
+                  Hold Tokens
                 </button>
               </div>
             </div>
@@ -398,6 +431,11 @@ const PostDetail: React.FC = () => {
           )}
         </section>
       </div>
+      <BuyModal
+        isOpen={buyModalOpen}
+        onClose={() => setBuyModalOpen(false)}
+        coinAddress={postData?.address}
+      />
     </div>
   );
 };

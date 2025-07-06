@@ -445,8 +445,12 @@
   margin-bottom: var(--space-4);
 }
 
-.coinPrice svg {
-  color: var(--accent-purple-light);
+.coinChange {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
 }
 
 .priceInfo {
@@ -456,7 +460,7 @@
 }
 
 .price {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: var(--font-bold);
   color: var(--primary-100);
 }
@@ -464,6 +468,33 @@
 .priceChange {
   color: var(--accent-green);
   font-weight: var(--font-semibold);
+}
+
+.trendUp {
+  color: var(--accent-green);
+}
+
+.trendDown {
+  color: var(--accent-red);
+}
+
+.changeUp {
+  color: var(--accent-green);
+}
+
+.changeDown {
+  color: var(--accent-red);
+}
+
+.coinIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  color: white;
 }
 
 .coinStats {

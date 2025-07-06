@@ -37,7 +37,6 @@ const StatsPanel: React.FC<any> = ({
   data = {},
   className = "",
 }) => {
-  const priceChange = -4;
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -124,38 +123,6 @@ const StatsPanel: React.FC<any> = ({
             </div>
           </div>
         </div>
-
-        {/* {coinPrice > 0 && ( */}
-        <div className={styles.coinSection}>
-          <div className={styles.coinPrice}>
-            <div className={styles.coinIcon}>
-              <Coins size={16} />
-            </div>
-            <div className={styles.coinInfo}>
-              <span className={styles.coinValue}>{formatPrice(100)}</span>
-              <div className={styles.coinChange}>
-                {priceChange >= 0 ? (
-                  <TrendingUp size={12} className={styles.trendUp} />
-                ) : (
-                  <TrendingDown size={12} className={styles.trendDown} />
-                )}
-                <span
-                  className={
-                    priceChange >= 0 ? styles.changeUp : styles.changeDown
-                  }
-                >
-                  {priceChange >= 0 ? "+" : ""}
-                  {priceChange.toFixed(2)}%
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.holders}>
-            <Users size={14} />
-            <span>{data?.uniqueHolders} holders</span>
-          </div>
-        </div>
-        {/* )} */}
       </div>
     );
   }
@@ -200,7 +167,7 @@ const StatsPanel: React.FC<any> = ({
               <span className={styles.earningValue}>
                 {formatNumber(data.holders)}
               </span>
-              <span className={styles.earningLabel}>Total Holders</span>
+              <span className={styles.earningLabel}>Total Holding</span>
             </div>
           </div>
 

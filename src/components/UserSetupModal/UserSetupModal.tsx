@@ -53,8 +53,6 @@ const UserSetupModal: React.FC<UserSetupModalProps> = ({ isOpen, onClose }) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, you'd upload to a service like Cloudinary or AWS S3
-      // For now, we'll use a placeholder
       const reader = new FileReader();
       reader.onload = (event) => {
         setProfileImage(event.target?.result as string);
