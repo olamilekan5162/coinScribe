@@ -28,10 +28,12 @@ const PostCard: React.FC<PostCardProps> = ({
     });
   };
 
-  const marketChange = Number(
-    (post?.marketCapDelta24h / (post?.marketCap - post?.marketCapDelta24h)) *
-      100
-  );
+  const marketCapChange = (marketCap: any, marketCapDelta: any) => {
+    if (parseFloat(marketCap) === 0 || parseFloat(marketCapDelta) === 0) {
+      return 0;
+    }
+    return Number((marketCapDelta / (marketCap - marketCapDelta)) * 100);
+  };
 
   return (
     <article className={`${styles.card} ${styles[variant]} glass`}>
@@ -49,11 +51,21 @@ const PostCard: React.FC<PostCardProps> = ({
                 <span>${post?.marketCap}</span>
                 <span
                   className={
-                    marketChange >= 0 ? styles.priceUp : styles.priceDown
+                    marketCapChange(post?.marketCap, post?.marketCapDelta24h) >=
+                    0
+                      ? styles.priceUp
+                      : styles.priceDown
                   }
                 >
-                  {marketChange >= 0 ? "+" : ""}
-                  {marketChange.toFixed(2)}%
+                  {marketCapChange(post?.marketCap, post?.marketCapDelta24h) >=
+                  0
+                    ? "+"
+                    : ""}
+                  {marketCapChange(
+                    post?.marketCap,
+                    post?.marketCapDelta24h
+                  ).toFixed(2)}
+                  %
                 </span>
               </div>
             )}

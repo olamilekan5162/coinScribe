@@ -193,8 +193,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .cardHeader {
@@ -250,6 +255,9 @@
 
 .priceUp {
   color: var(--accent-green);
+}
+.priceDown {
+  color: var(--accent-red);
 }
 
 /* Section Styles */

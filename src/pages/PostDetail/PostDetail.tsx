@@ -118,11 +118,12 @@ const PostDetail: React.FC = () => {
     });
   };
 
-  const marketChange = Number(
-    (postData?.marketCapDelta24h /
-      (postData?.marketCap - postData?.marketCapDelta24h)) *
-      100
-  );
+  const marketCapChange = (marketCap: any, marketCapDelta: any) => {
+    if (parseFloat(marketCap) === 0 || parseFloat(marketCapDelta) === 0) {
+      return 0;
+    }
+    return Number((marketCapDelta / (marketCap - marketCapDelta)) * 100);
+  };
 
   return (
     <div className={styles.postDetail}>
@@ -341,20 +342,35 @@ const PostDetail: React.FC = () => {
                     <span className={styles.price}>${postData?.marketCap}</span>
 
                     <div className={styles.coinChange}>
-                      {marketChange >= 0 ? (
+                      {marketCapChange(
+                        postData?.marketCap,
+                        postData?.marketCapDelta24h
+                      ) >= 0 ? (
                         <TrendingUp size={12} className={styles.trendUp} />
                       ) : (
                         <TrendingDown size={12} className={styles.trendDown} />
                       )}
                       <span
                         className={
-                          marketChange >= 0
+                          marketCapChange(
+                            postData?.marketCap,
+                            postData?.marketCapDelta24h
+                          ) >= 0
                             ? styles.changeUp
                             : styles.changeDown
                         }
                       >
-                        {marketChange >= 0 ? "+" : ""}
-                        {marketChange.toFixed(2)}%
+                        {marketCapChange(
+                          postData?.marketCap,
+                          postData?.marketCapDelta24h
+                        ) >= 0
+                          ? "+"
+                          : ""}
+                        {marketCapChange(
+                          postData?.marketCap,
+                          postData?.marketCapDelta24h
+                        ).toFixed(2)}
+                        %
                       </span>
                     </div>
                   </div>

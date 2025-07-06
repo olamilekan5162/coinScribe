@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
   const [amount, setAmount] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
-  const [error, setError] = useState<string>("ddddd");
+  const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { data: walletClient } = useWalletClient();
   const { address } = useAuth();

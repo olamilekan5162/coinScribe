@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
-import { 
-  PenTool, 
-  Search, 
-  Bell, 
-  Menu, 
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useWeb3Modal } from "@web3modal/wagmi/react";
+import {
+  PenTool,
+  Search,
+  Bell,
+  Menu,
   X,
   Home,
   Compass,
   BarChart3,
-  Wallet
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import UserAvatar from '../UserAvatar/UserAvatar';
-import styles from './Navbar.module.css';
+  Wallet,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import UserAvatar from "../UserAvatar/UserAvatar";
+import styles from "./Navbar.module.css";
 
 interface NavigationItem {
   name: string;
@@ -29,9 +29,9 @@ const Navbar: React.FC = () => {
   const { user, isConnected, address, logout } = useAuth();
 
   const navigation: NavigationItem[] = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Explore', href: '/explore', icon: Compass },
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
+    { name: "Home", href: "/", icon: Home },
+    { name: "Explore", href: "/explore", icon: Compass },
+    // { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
   ];
 
   const isActiveRoute = (path: string): boolean => {
@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
 
   const handleWalletClick = () => {
     if (isConnected) {
-      console.log('Clicked wallet connect');
+      console.log("Clicked wallet connect");
       // Show wallet modal for connected users
       open();
     } else {
@@ -68,7 +68,7 @@ const Navbar: React.FC = () => {
                   key={item.name}
                   to={item.href}
                   className={`${styles.navLink} ${
-                    isActiveRoute(item.href) ? styles.navLinkActive : ''
+                    isActiveRoute(item.href) ? styles.navLinkActive : ""
                   }`}
                 >
                   <Icon size={18} />
@@ -83,11 +83,8 @@ const Navbar: React.FC = () => {
             <button className={styles.searchButton}>
               <Search size={20} />
             </button>
-            
-            <Link 
-              to="/create" 
-              className={`${styles.createButton} glow`}
-            >
+
+            <Link to="/create" className={`${styles.createButton} glow`}>
               <PenTool size={18} />
               <span>Write</span>
             </Link>
@@ -100,7 +97,7 @@ const Navbar: React.FC = () => {
                 </button>
 
                 <Link to={`/profile/${address}`}>
-                  <UserAvatar 
+                  <UserAvatar
                     src={user.profile_image || undefined}
                     alt={user.full_name}
                     size="sm"
@@ -109,7 +106,7 @@ const Navbar: React.FC = () => {
                 </Link>
               </>
             ) : (
-              <button 
+              <button
                 onClick={handleWalletClick}
                 className={`${styles.walletButton} glow`}
               >
@@ -138,7 +135,7 @@ const Navbar: React.FC = () => {
                   key={item.name}
                   to={item.href}
                   className={`${styles.mobileNavLink} ${
-                    isActiveRoute(item.href) ? styles.mobileNavLinkActive : ''
+                    isActiveRoute(item.href) ? styles.mobileNavLinkActive : ""
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -155,9 +152,9 @@ const Navbar: React.FC = () => {
               <PenTool size={20} />
               <span>Write New Post</span>
             </Link>
-            
+
             {!isConnected && (
-              <button 
+              <button
                 onClick={() => {
                   handleWalletClick();
                   setIsMobileMenuOpen(false);
