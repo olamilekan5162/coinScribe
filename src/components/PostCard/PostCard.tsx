@@ -52,6 +52,7 @@ const PostCard: React.FC<PostCardProps> = ({
                     marketChange >= 0 ? styles.priceUp : styles.priceDown
                   }
                 >
+                  {marketChange >= 0 ? "+" : ""}
                   {marketChange.toFixed(2)}%
                 </span>
               </div>
@@ -81,7 +82,7 @@ const PostCard: React.FC<PostCardProps> = ({
               </div>
             </div>
           </div>
-          {post?.uniqueHolders > 1 && (
+          {post?.uniqueHolders > 2 && (
             <div className={styles.trendingBadge}>
               <TrendingUp size={12} />
               <span>Trending</span>

@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Loader2, X, ArrowUpDown, Wallet, CheckCircle } from "lucide-react";
-import { Address, createPublicClient, http, parseEther } from "viem";
+import {
+  Address,
+  createPublicClient,
+  formatEther,
+  http,
+  parseEther,
+} from "viem";
 import { base } from "viem/chains";
 import { useWalletClient } from "wagmi";
 import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
@@ -69,8 +75,47 @@ const TradeModal: React.FC<any> = ({ onClose, userTokens }) => {
     }
   };
 
-  const handleSell = () => {
-    console.log("sell");
+  const handleSell = async () => {
+    if (!amount) {
+      setError("Please enter a valid amount greater than 0.");
+      return;
+    }
+
+    if (!walletClient) {
+      setError("No wallet client or account found");
+      return;
+    }
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const tradeParameters: TradeParameters = {
+        sell: {
+          type: "erc20",
+          address: userTokens?.node?.coin?.address, // Creator coin address
+        },
+        buy: { type: "eth" },
+        amountIn: parseEther(amount), // 100 tokens (adjust decimals as needed)
+        slippage: 0.15, // 15% slippage tolerance
+        sender: address as Address,
+      };
+
+      const receipt = await tradeCoin({
+        tradeParameters,
+        walletClient,
+        account: walletClient?.account,
+        publicClient,
+      });
+      setSuccess(true);
+      setIsLoading(false);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+      setIsLoading(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const marketCapChange = Number(
@@ -180,8 +225,10 @@ const TradeModal: React.FC<any> = ({ onClose, userTokens }) => {
               <span>Price per coin:</span>
               <span>
                 $
-                {userTokens?.node?.coin?.marketCap /
-                  userTokens?.node?.coin?.totalSupply}
+                {(
+                  userTokens?.node?.coin?.marketCap /
+                  userTokens?.node?.coin?.totalSupply
+                ).toFixed(10)}
               </span>
             </div>
             <div className={styles.tokenInfoRow}>
@@ -198,7 +245,10 @@ const TradeModal: React.FC<any> = ({ onClose, userTokens }) => {
             <div className={styles.tokenInfoRow}>
               <span>Your Holdings:</span>
               <span>
-                {Number(userTokens?.node?.balance).toFixed(10)} tokens
+                {Number(formatEther(BigInt(userTokens?.node?.balance))).toFixed(
+                  2
+                )}{" "}
+                tokens
               </span>
             </div>
           </div>

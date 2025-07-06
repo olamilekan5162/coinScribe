@@ -81,7 +81,6 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
-        console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
@@ -354,6 +353,7 @@ const PostDetail: React.FC = () => {
                             : styles.changeDown
                         }
                       >
+                        {marketChange >= 0 ? "+" : ""}
                         {marketChange.toFixed(2)}%
                       </span>
                     </div>

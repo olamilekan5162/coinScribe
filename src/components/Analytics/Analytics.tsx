@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Analytics.module.css";
 import TradeModal from "../TradeModal/TradeModal";
+import { formatEther } from "viem";
 // import TradeModal from "../TradeModal/TradeModal";
 
 const Analytics: React.FC<any> = ({ holding }) => {
   const [showTradeModal, setShowTradeModal] = useState(false);
-  useEffect(() => {
-    if (holding) {
-      console.log(holding);
-    } else {
-      console.log("fetching");
-    }
-  }, []);
+
+  const marketCapChange = Number(
+    (holding?.node?.coin?.marketCapDelta24h /
+      (holding?.node?.coin?.marketCap -
+        holding?.node?.coin?.marketCapDelta24h)) *
+      100
+  );
 
   return (
     <>
@@ -47,19 +48,33 @@ const Analytics: React.FC<any> = ({ holding }) => {
         <div className={styles.portfolioStats}>
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>Your Coins</span>
-            <span className={styles.portfolioValue}>{0}</span>
+            <span className={styles.portfolioValue}>
+              {Number(formatEther(BigInt(holding?.node?.balance))).toFixed(2)} $
+              {holding?.node?.coin?.symbol}
+            </span>
           </div>
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>Coin Price</span>
-            <span className={styles.portfolioValue}>{0}</span>
+            <span className={styles.portfolioValue}>
+              $
+              {(
+                holding?.node?.coin?.marketCap /
+                holding?.node?.coin?.totalSupply
+              ).toFixed(10)}
+            </span>
           </div>
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>Total Value</span>
-            <span className={styles.portfolioValue}>{0}</span>
+            <span className={styles.portfolioValue}>
+              {holding?.node?.coin?.totalSupply} ${holding?.node?.coin?.symbol}
+            </span>
           </div>
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>24h Change</span>
-            <span className={`${styles.portfolioValue} `}>{0}</span>
+            <span className={`${styles.portfolioValue} `}>
+              {marketCapChange >= 0 ? "+" : ""}
+              {marketCapChange.toFixed(2)}%
+            </span>
           </div>
         </div>
 

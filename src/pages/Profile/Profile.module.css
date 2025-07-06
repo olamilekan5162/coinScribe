@@ -359,6 +359,15 @@
   line-height: var(--leading-relaxed);
 }
 
+.portfolioList {
+  display: flex;
+  padding: 20px 0;
+  flex-direction: column;
+  gap: var(--space-6);
+  overflow-y: auto;
+  max-height: 400px;
+}
+
 /* Sidebar */
 .sidebar {
   display: flex;

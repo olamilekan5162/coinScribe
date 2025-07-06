@@ -167,7 +167,7 @@ const StatsPanel: React.FC<any> = ({
               <span className={styles.earningValue}>
                 {formatNumber(data.holders)}
               </span>
-              <span className={styles.earningLabel}>Total Holders</span>
+              <span className={styles.earningLabel}>Total Holding</span>
             </div>
           </div>
 
