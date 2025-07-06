@@ -119,8 +119,6 @@ const PostDetail: React.FC = () => {
     });
   };
 
-  const priceChange = 1;
-
   const marketChange = Number(
     (postData?.marketCapDelta24h /
       (postData?.marketCap - postData?.marketCapDelta24h)) *
@@ -359,8 +357,6 @@ const PostDetail: React.FC = () => {
                         {marketChange.toFixed(2)}%
                       </span>
                     </div>
-
-                    {/* <span className={styles.trendUp}>+{12}%</span> */}
                   </div>
                 </div>
                 <div className={styles.coinStats}>

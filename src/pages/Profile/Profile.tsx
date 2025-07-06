@@ -22,6 +22,7 @@ import { getProfileBalances } from "@zoralabs/coins-sdk";
 import { formatEther, parseEther } from "viem";
 import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
 import { privateKeyToAccount } from "viem/accounts";
+import Analytics from "../../components/Analytics/Analytics";
 
 interface ProfileUser {
   id: string;
@@ -54,7 +55,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [balance, setBalance] = useState(null);
+  const [userHoldings, setUserHoldings] = useState(null);
   const [activeTab, setActiveTab] = useState<"posts" | "analytics">("posts");
 
   useEffect(() => {
@@ -74,8 +75,8 @@ const Profile: React.FC = () => {
           res?.node?.coin?.platformReferrerAddress ===
           "0x4e998ae5b55e492d0d2665ca854b03625f7acf33"
       );
-      console.log(filteredProfile);
-      setBalance(filteredProfile);
+
+      setUserHoldings(filteredProfile);
     }
     fetchUserBalances();
   }, [address]);
@@ -142,14 +143,14 @@ const Profile: React.FC = () => {
     });
   };
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + "M";
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "K";
-    }
-    return num.toString();
-  };
+  // const formatNumber = (num: number): string => {
+  //   if (num >= 1000000) {
+  //     return (num / 1000000).toFixed(1) + "M";
+  //   } else if (num >= 1000) {
+  //     return (num / 1000).toFixed(1) + "K";
+  //   }
+  //   return num.toString();
+  // };
 
   if (loading) {
     return (
@@ -215,13 +216,13 @@ const Profile: React.FC = () => {
               <div className={styles.stats}>
                 <div className={styles.stat}>
                   <span className={styles.statValue}>
-                    {formatNumber(profileUser.followers_count)}
+                    {profileUser.followers_count}
                   </span>
                   <span className={styles.statLabel}>Followers</span>
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statValue}>
-                    {formatNumber(profileUser.following_count)}
+                    {profileUser.following_count}
                   </span>
                   <span className={styles.statLabel}>Following</span>
                 </div>
@@ -231,7 +232,7 @@ const Profile: React.FC = () => {
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statValue}>
-                    ${formatNumber(profileUser.total_earnings)}
+                    ${profileUser.total_earnings}
                   </span>
                   <span className={styles.statLabel}>Earned</span>
                 </div>
@@ -330,7 +331,7 @@ const Profile: React.FC = () => {
               </div>
             )}
             {activeTab === "analytics" && (
-              <div className={styles.postsSection}>Analitics coming soon</div>
+              <Analytics userHoldings={userHoldings} />
             )}
           </div>
 
