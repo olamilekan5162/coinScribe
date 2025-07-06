@@ -75,15 +75,6 @@
   text-align: center;
   font-size: var(--text-sm);
 }
-/* .success {
-  padding: var(--space-3);
-  background: #32cd32;
-  border: 1px solid rgba(15, 109, 12, 0.1);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  color: white;
-  font-size: var(--text-sm);
-} */
 
 .successContainer {
   display: flex;

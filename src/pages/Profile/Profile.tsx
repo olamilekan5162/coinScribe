@@ -55,7 +55,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [userHoldings, setUserHoldings] = useState(null);
+  const [userHoldings, setUserHoldings] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"posts" | "analytics">("posts");
 
   useEffect(() => {
@@ -294,7 +294,7 @@ const Profile: React.FC = () => {
                     activeTab === "analytics" ? styles.tabActive : ""
                   }`}
                 >
-                  Analytics
+                  Analytics ({userHoldings?.length})
                 </button>
               )}
             </div>
@@ -331,7 +331,32 @@ const Profile: React.FC = () => {
               </div>
             )}
             {activeTab === "analytics" && (
-              <Analytics userHoldings={userHoldings} />
+              <div className={styles.analyticsSection}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>
+                    Your Blog Post Holdings
+                  </h2>
+                  <p className={styles.sectionDescription}>
+                    See which posts you own tokens for and track your
+                    investments.
+                  </p>
+                </div>
+                {userHoldings?.length > 0 ? (
+                  <div className={styles.portfolioList}>
+                    {userHoldings.map((holding: any) => (
+                      <Analytics key={holding?.node?.id} holding={holding} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.emptyState}>
+                    <h3>No tokenized post holdings yet</h3>
+                    <p>
+                      When you buy tokens for posts, they’ll appear here for you
+                      to manage and trade.
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

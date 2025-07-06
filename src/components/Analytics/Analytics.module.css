@@ -1,25 +1,3 @@
-.analyticsSection {
-  min-height: 400px;
-}
-
-.sectionHeader {
-  margin-bottom: var(--space-8);
-  text-align: center;
-}
-
-.sectionTitle {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--primary-100);
-  margin-bottom: var(--space-2);
-}
-
-.sectionDescription {
-  color: var(--primary-400);
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
-}
-
 .portfolioList {
   display: flex;
   flex-direction: column;
@@ -163,22 +141,4 @@
 .portfolioButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.emptyState {
-  text-align: center;
-  padding: var(--space-16);
-}
-
-.emptyState h3 {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-semibold);
-  color: var(--primary-100);
-  margin-bottom: var(--space-4);
-}
-
-.emptyState p {
-  color: var(--primary-400);
-  line-height: var(--leading-relaxed);
-  font-size: var(--text-base);
 }
