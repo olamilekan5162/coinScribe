@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { X, DollarSign, CheckCircle } from "lucide-react";
 import styles from "./BuyModal.module.css";
 import { Address, createPublicClient, http, parseEther } from "viem";
@@ -62,7 +62,7 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
       setIsLoading(false);
     } catch (err) {
       console.error(err);
-      setError("Transaction failed. Please try again.");
+      setError(err.message);
       setIsLoading(false);
     } finally {
       setIsLoading(false);

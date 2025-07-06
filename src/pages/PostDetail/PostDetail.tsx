@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Coins,
   Users,
+  TrendingDown,
 } from "lucide-react";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -117,6 +118,14 @@ const PostDetail: React.FC = () => {
       day: "numeric",
     });
   };
+
+  const priceChange = 1;
+
+  const marketChange = Number(
+    (postData?.marketCapDelta24h /
+      (postData?.marketCap - postData?.marketCapDelta24h)) *
+      100
+  );
 
   return (
     <div className={styles.postDetail}>
@@ -328,10 +337,30 @@ const PostDetail: React.FC = () => {
               <h3 className={styles.sidebarTitle}>Story Token</h3>
               <div className={styles.coinDetails}>
                 <div className={styles.coinPrice}>
-                  <Coins size={20} />
+                  <div className={styles.coinIcon}>
+                    <Coins size={16} />
+                  </div>
                   <div className={styles.priceInfo}>
-                    <span className={styles.price}>${45.67}</span>
-                    <span className={styles.priceChange}>+{12}%</span>
+                    <span className={styles.price}>${postData?.marketCap}</span>
+
+                    <div className={styles.coinChange}>
+                      {marketChange >= 0 ? (
+                        <TrendingUp size={12} className={styles.trendUp} />
+                      ) : (
+                        <TrendingDown size={12} className={styles.trendDown} />
+                      )}
+                      <span
+                        className={
+                          marketChange >= 0
+                            ? styles.changeUp
+                            : styles.changeDown
+                        }
+                      >
+                        {marketChange.toFixed(2)}%
+                      </span>
+                    </div>
+
+                    {/* <span className={styles.trendUp}>+{12}%</span> */}
                   </div>
                 </div>
                 <div className={styles.coinStats}>
@@ -348,7 +377,7 @@ const PostDetail: React.FC = () => {
                   className={`${styles.buyButton} glow`}
                   onClick={() => setBuyModalOpen(true)}
                 >
-                  Buy Tokens
+                  Hold Tokens
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Share2, TrendingUp, Coins } from "lucide-react";
 import UserAvatar from "../UserAvatar/UserAvatar";
@@ -28,6 +28,11 @@ const PostCard: React.FC<PostCardProps> = ({
     });
   };
 
+  const marketChange = Number(
+    (post?.marketCapDelta24h / (post?.marketCap - post?.marketCapDelta24h)) *
+      100
+  );
+
   return (
     <article className={`${styles.card} ${styles[variant]} glass`}>
       {post && (
@@ -38,20 +43,19 @@ const PostCard: React.FC<PostCardProps> = ({
             className={styles.image}
           />
           <div className={styles.imageOverlay}>
-            {/* {coinData && (
+            {post && (
               <div className={styles.coinPrice}>
                 <Coins size={16} />
-                <span>${coinData.price}</span>
+                <span>${post?.marketCap}</span>
                 <span
                   className={
-                    coinData.change >= 0 ? styles.priceUp : styles.priceDown
+                    marketChange >= 0 ? styles.priceUp : styles.priceDown
                   }
                 >
-                  {coinData.change >= 0 ? "+" : ""}
-                  {coinData.change}%
+                  {marketChange.toFixed(2)}%
                 </span>
               </div>
-            )} */}
+            )}
           </div>
         </div>
       )}

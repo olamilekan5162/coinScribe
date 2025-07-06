@@ -19,6 +19,9 @@ import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import styles from "./Profile.module.css";
 import { getProfileBalances } from "@zoralabs/coins-sdk";
+import { formatEther, parseEther } from "viem";
+import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
+import { privateKeyToAccount } from "viem/accounts";
 
 interface ProfileUser {
   id: string;
@@ -51,17 +54,28 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"posts" | "drafts" | "liked">(
-    "posts"
-  );
+  const [balance, setBalance] = useState(null);
+  const [activeTab, setActiveTab] = useState<"posts" | "analytics">("posts");
 
   useEffect(() => {
     async function fetchUserBalances() {
+      if (!address) {
+        console.log("user address not found");
+        return;
+      }
+
+      // const coin = formatEther(2950854219812984816808n);
       const response = await getProfileBalances({
         identifier: address,
       });
-      const profile: any = response.data?.profile?.coinBalances;
-      console.log(profile);
+      const profile: any = response.data?.profile?.coinBalances?.edges;
+      const filteredProfile = profile.filter(
+        (res: any) =>
+          res?.node?.coin?.platformReferrerAddress ===
+          "0x4e998ae5b55e492d0d2665ca854b03625f7acf33"
+      );
+      console.log(filteredProfile);
+      setBalance(filteredProfile);
     }
     fetchUserBalances();
   }, [address]);
@@ -212,9 +226,7 @@ const Profile: React.FC = () => {
                   <span className={styles.statLabel}>Following</span>
                 </div>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>
-                    {profileUser.posts_count}
-                  </span>
+                  <span className={styles.statValue}>{userPosts?.length}</span>
                   <span className={styles.statLabel}>Posts</span>
                 </div>
                 <div className={styles.stat}>
@@ -276,53 +288,50 @@ const Profile: React.FC = () => {
               </button>
               {isOwnProfile && (
                 <button
-                  onClick={() => setActiveTab("drafts")}
+                  onClick={() => setActiveTab("analytics")}
                   className={`${styles.tab} ${
-                    activeTab === "drafts" ? styles.tabActive : ""
+                    activeTab === "analytics" ? styles.tabActive : ""
                   }`}
                 >
-                  Drafts
+                  Analytics
                 </button>
               )}
-              <button
-                onClick={() => setActiveTab("liked")}
-                className={`${styles.tab} ${
-                  activeTab === "liked" ? styles.tabActive : ""
-                }`}
-              >
-                Liked
-              </button>
             </div>
 
             {/* Posts Grid */}
-            <div className={styles.postsSection}>
-              {postsLoading ? (
-                <div className={styles.loading}>
-                  <Loader2 className="animate-spin mr-2" size={24} />
-                  Loading posts...
-                </div>
-              ) : userPosts.length > 0 ? (
-                <div className={styles.postsGrid}>
-                  {userPosts.map((post) => (
-                    <PostCard key={post.id} post={post} />
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.emptyState}>
-                  <h3>No posts yet</h3>
-                  <p>
-                    {isOwnProfile
-                      ? "Start writing your first story!"
-                      : `${profileUser.full_name} hasn't published any posts yet.`}
-                  </p>
-                  {isOwnProfile && (
-                    <Link to="/create" className={styles.createFirstPost}>
-                      Write Your First Post
-                    </Link>
-                  )}
-                </div>
-              )}
-            </div>
+            {activeTab === "posts" && (
+              <div className={styles.postsSection}>
+                {postsLoading ? (
+                  <div className={styles.loading}>
+                    <Loader2 className="animate-spin mr-2" size={24} />
+                    Loading posts...
+                  </div>
+                ) : userPosts.length > 0 ? (
+                  <div className={styles.postsGrid}>
+                    {userPosts.map((post) => (
+                      <PostCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.emptyState}>
+                    <h3>No posts yet</h3>
+                    <p>
+                      {isOwnProfile
+                        ? "Start writing your first story!"
+                        : `${profileUser.full_name} hasn't published any posts yet.`}
+                    </p>
+                    {isOwnProfile && (
+                      <Link to="/create" className={styles.createFirstPost}>
+                        Write Your First Post
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {activeTab === "analytics" && (
+              <div className={styles.postsSection}>Analitics coming soon</div>
+            )}
           </div>
 
           {/* Sidebar */}
