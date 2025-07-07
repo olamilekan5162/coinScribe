@@ -1,6 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Share2, TrendingUp, Coins } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  TrendingUp,
+  Coins,
+  Triangle,
+} from "lucide-react";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import styles from "./PostCard.module.css";
 
@@ -28,26 +35,6 @@ const PostCard: React.FC<PostCardProps> = ({
     });
   };
 
-  const marketCapChange = (
-    marketCap: string,
-    marketCapDelta: string
-  ): number => {
-    const cap = parseFloat(marketCap);
-    const delta = parseFloat(marketCapDelta);
-
-    if (cap === 0 || delta === 0) {
-      return 0;
-    }
-
-    const denominator = cap - delta;
-    if (denominator === 0) {
-      return 0; // avoid division by zero
-    }
-
-    const change = (delta / denominator) * 100;
-    return change;
-  };
-
   return (
     <article className={`${styles.card} ${styles[variant]} glass`}>
       {post && (
@@ -64,21 +51,13 @@ const PostCard: React.FC<PostCardProps> = ({
                 <span>${post?.marketCap}</span>
                 <span
                   className={
-                    marketCapChange(post?.marketCap, post?.marketCapDelta24h) >=
-                    0
+                    post?.marketCapDelta24h >= 0
                       ? styles.priceUp
                       : styles.priceDown
                   }
                 >
-                  {marketCapChange(post?.marketCap, post?.marketCapDelta24h) >=
-                  0
-                    ? "+"
-                    : ""}
-                  {marketCapChange(
-                    post?.marketCap,
-                    post?.marketCapDelta24h
-                  ).toFixed(2)}
-                  %
+                  <Triangle size={12} />$
+                  {parseFloat(post?.marketCapDelta24h).toFixed(2)}
                 </span>
               </div>
             )}

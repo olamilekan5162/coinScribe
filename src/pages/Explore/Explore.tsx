@@ -258,8 +258,8 @@ const Explore: React.FC = () => {
 
   // Filter and sort posts - use actual posts from hook when not loading
   const postsToUse = isLoading ? allPosts : posts;
-  
-  const filteredPosts = postsToUse.filter((post) => {
+
+  const filteredPosts = posts.filter((post) => {
     const matchesSearch =
       searchQuery === "" ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -428,7 +428,10 @@ const Explore: React.FC = () => {
                   {sortedPosts.length}{" "}
                   {sortedPosts.length === 1 ? "Story" : "Stories"}
                   {searchQuery && (
-                    <span className={styles.searchQuery}> for "{searchQuery}"</span>
+                    <span className={styles.searchQuery}>
+                      {" "}
+                      for "{searchQuery}"
+                    </span>
                   )}
                 </h2>
                 <div className={styles.resultsSort}>
@@ -461,8 +464,8 @@ const Explore: React.FC = () => {
                   </div>
                   <h3 className={styles.emptyTitle}>No stories found</h3>
                   <p className={styles.emptyText}>
-                    Try adjusting your search terms or filters to find what you're
-                    looking for.
+                    Try adjusting your search terms or filters to find what
+                    you're looking for.
                   </p>
                   <button
                     onClick={() => {

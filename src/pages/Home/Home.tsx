@@ -10,6 +10,7 @@ import {
   Globe,
   Shield,
   Loader2,
+  Triangle,
 } from "lucide-react";
 import { usePosts } from "../../hooks/usePosts";
 import FeaturedCarousel from "../../components/FeaturedCarousel/FeaturedCarousel";
@@ -119,13 +120,6 @@ const Home: React.FC = () => {
     (artist) => artist?.address === "0xb3f7f286aff07324036a7d6792644590c0f5ded6"
   );
 
-  const marketCapChange = (marketCap: any, marketCapDelta: any) => {
-    if (parseFloat(marketCap) === 0 || parseFloat(marketCapDelta) === 0) {
-      return 0;
-    }
-    return Number((marketCapDelta / (marketCap - marketCapDelta)) * 100);
-  };
-
   const platformStats: PlatformStat[] = [
     { icon: Users, label: "Active Writers", value: "12,500+" },
     { icon: PenTool, label: "Stories Published", value: "45,000+" },
@@ -198,25 +192,15 @@ const Home: React.FC = () => {
                         <span>&{Number(heroArtist?.[0]?.marketCap)}</span>
                         <span
                           className={
-                            marketCapChange(
-                              heroArtist?.[0]?.marketCapDelta24h,
-                              heroArtist?.[0]?.marketCapDelta24h
-                            ) >= 0
+                            heroArtist?.[0]?.marketCapDelta24h >= 0
                               ? styles.priceUp
                               : styles.priceDown
                           }
                         >
-                          {marketCapChange(
-                            heroArtist?.[0]?.marketCapDelta24h,
-                            heroArtist?.[0]?.marketCapDelta24h
-                          ) >= 0
-                            ? "+"
-                            : ""}
-                          {marketCapChange(
-                            heroArtist?.[0]?.marketCapDelta24h,
+                          <Triangle size={12} />$
+                          {parseFloat(
                             heroArtist?.[0]?.marketCapDelta24h
                           ).toFixed(2)}
-                          %
                         </span>
                       </div>
                     </div>

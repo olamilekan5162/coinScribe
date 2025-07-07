@@ -30,8 +30,26 @@ const StatsPanel: React.FC<any> = ({
     return (averagePrice / userHoldings.length).toFixed(2);
   };
 
+  const getTotalEarning = () => {
+    if (!userHoldings || userHoldings.length === 0) {
+      return 0;
+    }
+    let earning = 0;
+    for (let i = 0; i < userHoldings.length; i++) {
+      const balance = parseFloat(
+        Number(formatEther(BigInt(userHoldings[i]?.node?.balance))).toFixed(2)
+      );
+      const marketCap = parseFloat(userHoldings[i]?.node?.coin?.marketCap);
+      const totalSupply = parseFloat(userHoldings[i]?.node?.coin?.totalSupply);
+
+      const totalBalance = balance * (marketCap / totalSupply);
+      earning += totalBalance;
+    }
+    return earning.toFixed(2);
+  };
+
   useEffect(() => {
-    console.log(getAverageCoinPrice());
+    console.log(getTotalEarning());
   }, [userHoldings]);
 
   const formatNumber = (num: number): string => {
@@ -137,9 +155,7 @@ const StatsPanel: React.FC<any> = ({
               <DollarSign size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>
-                {formatPrice(data?.totalEarnings)}
-              </span>
+              <span className={styles.earningValue}>${getTotalEarning()}</span>
               <span className={styles.earningLabel}>Total Earnings</span>
             </div>
           </div>

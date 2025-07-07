@@ -13,6 +13,7 @@ import {
   Coins,
   Users,
   TrendingDown,
+  Triangle,
 } from "lucide-react";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -43,8 +44,8 @@ const PostDetail: React.FC = () => {
   const { posts } = usePosts();
   const otherPosts = posts.filter(
     (post) =>
-      post.creatorAddress === postData.creatorAddress &&
-      post.address !== postData.address
+      post?.creatorAddress === postData?.creatorAddress &&
+      post?.address !== postData?.address
   );
 
   useEffect(() => {
@@ -117,26 +118,6 @@ const PostDetail: React.FC = () => {
       month: "long",
       day: "numeric",
     });
-  };
-
-  const marketCapChange = (
-    marketCap: string,
-    marketCapDelta: string
-  ): number => {
-    const cap = parseFloat(marketCap);
-    const delta = parseFloat(marketCapDelta);
-
-    if (cap === 0 || delta === 0) {
-      return 0;
-    }
-
-    const denominator = cap - delta;
-    if (denominator === 0) {
-      return 0; // avoid division by zero
-    }
-
-    const change = (delta / denominator) * 100;
-    return change;
   };
 
   return (
@@ -356,35 +337,22 @@ const PostDetail: React.FC = () => {
                     <span className={styles.price}>${postData?.marketCap}</span>
 
                     <div className={styles.coinChange}>
-                      {marketCapChange(
-                        postData?.marketCap,
-                        postData?.marketCapDelta24h
-                      ) >= 0 ? (
-                        <TrendingUp size={12} className={styles.trendUp} />
-                      ) : (
-                        <TrendingDown size={12} className={styles.trendDown} />
-                      )}
+                      <Triangle
+                        size={12}
+                        className={
+                          postData?.marketCapDelta24h >= 0
+                            ? styles.trendUp
+                            : styles.trendDown
+                        }
+                      />
                       <span
                         className={
-                          marketCapChange(
-                            postData?.marketCap,
-                            postData?.marketCapDelta24h
-                          ) >= 0
+                          postData?.marketCapDelta24h >= 0
                             ? styles.changeUp
                             : styles.changeDown
                         }
                       >
-                        {marketCapChange(
-                          postData?.marketCap,
-                          postData?.marketCapDelta24h
-                        ) >= 0
-                          ? "+"
-                          : ""}
-                        {marketCapChange(
-                          postData?.marketCap,
-                          postData?.marketCapDelta24h
-                        ).toFixed(2)}
-                        %
+                        ${parseFloat(postData?.marketCapDelta24h).toFixed(2)}
                       </span>
                     </div>
                   </div>

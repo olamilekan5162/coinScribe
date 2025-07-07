@@ -6,13 +6,6 @@ import { formatEther } from "viem";
 const Analytics: React.FC<any> = ({ holding }) => {
   const [showTradeModal, setShowTradeModal] = useState(false);
 
-  const marketCapChange = (marketCap: any, marketCapDelta: any) => {
-    if (parseFloat(marketCap) === 0 || parseFloat(marketCapDelta) === 0) {
-      return 0;
-    }
-    return Number((marketCapDelta / (marketCap - marketCapDelta)) * 100);
-  };
-
   return (
     <>
       <div className={styles.portfolioItem}>
@@ -71,17 +64,7 @@ const Analytics: React.FC<any> = ({ holding }) => {
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>24h Change</span>
             <span className={`${styles.portfolioValue} `}>
-              {marketCapChange(
-                holding?.node?.coin?.marketCap,
-                holding?.node?.coin?.marketCapDelta24h
-              ) >= 0
-                ? "+"
-                : ""}
-              {marketCapChange(
-                holding?.node?.coin?.marketCap,
-                holding?.node?.coin?.marketCapDelta24h
-              ).toFixed(2)}
-              %
+              ${parseFloat(holding?.node?.coin?.marketCapDelta24h).toFixed(2)}
             </span>
           </div>
         </div>

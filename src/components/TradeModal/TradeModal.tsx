@@ -117,13 +117,6 @@ const TradeModal: React.FC<any> = ({ onClose, userTokens }) => {
     }
   };
 
-  const marketCapChange = Number(
-    (userTokens?.node?.coin?.marketCapDelta24h /
-      (userTokens?.node?.coin?.marketCap -
-        userTokens?.node?.coin?.marketCapDelta24h)) *
-      100
-  );
-
   if (success) {
     return (
       <div className={styles.modalOverlay}>
@@ -231,11 +224,15 @@ const TradeModal: React.FC<any> = ({ onClose, userTokens }) => {
               <span>24h Change:</span>
               <span
                 className={
-                  marketCapChange >= 0 ? styles.positive : styles.negative
+                  userTokens?.node?.coin?.marketCapDelta24h >= 0
+                    ? styles.positive
+                    : styles.negative
                 }
               >
-                {marketCapChange >= 0 ? "+" : ""}
-                {marketCapChange.toFixed(2)}%
+                $
+                {parseFloat(userTokens?.node?.coin?.marketCapDelta24h).toFixed(
+                  2
+                )}
               </span>
             </div>
             <div className={styles.tokenInfoRow}>
