@@ -9,7 +9,6 @@ import {
   X,
   Home,
   Compass,
-  BarChart3,
   Wallet,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -26,7 +25,7 @@ const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const location = useLocation();
   const { open } = useWeb3Modal();
-  const { user, isConnected, address, logout } = useAuth();
+  const { user, isConnected, address } = useAuth();
 
   const navigation: NavigationItem[] = [
     { name: "Home", href: "/", icon: Home },

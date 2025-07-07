@@ -311,9 +311,9 @@ const CreatePost: React.FC = () => {
 
       // Navigate to dashboard after a short delay
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/explore");
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Publishing failed:", error);
 
       // Remove loading toast

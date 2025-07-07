@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./Analytics.module.css";
 import TradeModal from "../TradeModal/TradeModal";
 import { formatEther } from "viem";
-// import TradeModal from "../TradeModal/TradeModal";
 
 const Analytics: React.FC<any> = ({ holding }) => {
   const [showTradeModal, setShowTradeModal] = useState(false);

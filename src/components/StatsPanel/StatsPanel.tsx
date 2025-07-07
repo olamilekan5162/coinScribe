@@ -1,7 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
   Eye,
   Heart,
   MessageCircle,
@@ -12,31 +10,30 @@ import {
   DollarSign,
 } from "lucide-react";
 import styles from "./StatsPanel.module.css";
-
-// interface StatsPanelData {
-//   views?: number;
-//   likes?: number;
-//   comments?: number;
-//   shares?: number;
-//   coinPrice?: number;
-//   priceChange?: number;
-//   holders?: number;
-//   totalEarnings?: number;
-//   publishedAt?: string;
-//   readTime?: number;
-// }
-
-// interface StatsPanelProps {
-//   variant?: "post" | "dashboard";
-//   data?: StatsPanelData;
-//   className?: string;
-// }
+import { formatEther } from "viem";
 
 const StatsPanel: React.FC<any> = ({
   variant = "post",
   data = {},
+  userHoldings,
   className = "",
 }) => {
+  const getAverageCoinPrice = () => {
+    if (!userHoldings || userHoldings.length === 0) {
+      return 0;
+    }
+    let averagePrice = 0;
+    for (let i = 0; i < userHoldings.length; i++) {
+      const price = parseFloat(userHoldings[i]?.node?.coin?.marketCap);
+      averagePrice += price;
+    }
+    return (averagePrice / userHoldings.length).toFixed(2);
+  };
+
+  useEffect(() => {
+    console.log(getAverageCoinPrice());
+  }, [userHoldings]);
+
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -153,7 +150,7 @@ const StatsPanel: React.FC<any> = ({
             </div>
             <div className={styles.earningInfo}>
               <span className={styles.earningValue}>
-                {formatPrice(data.coinPrice)}
+                ${getAverageCoinPrice()}
               </span>
               <span className={styles.earningLabel}>Avg. Coin Price</span>
             </div>
@@ -164,9 +161,7 @@ const StatsPanel: React.FC<any> = ({
               <Users size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>
-                {formatNumber(data.holders)}
-              </span>
+              <span className={styles.earningValue}>{userHoldings.length}</span>
               <span className={styles.earningLabel}>Total Holding</span>
             </div>
           </div>
@@ -176,9 +171,7 @@ const StatsPanel: React.FC<any> = ({
               <Eye size={20} />
             </div>
             <div className={styles.earningInfo}>
-              <span className={styles.earningValue}>
-                {formatNumber(data.views)}
-              </span>
+              <span className={styles.earningValue}>{50}</span>
               <span className={styles.earningLabel}>Total Views</span>
             </div>
           </div>

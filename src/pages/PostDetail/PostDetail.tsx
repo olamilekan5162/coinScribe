@@ -81,6 +81,7 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
+        console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
@@ -118,11 +119,24 @@ const PostDetail: React.FC = () => {
     });
   };
 
-  const marketCapChange = (marketCap: any, marketCapDelta: any) => {
-    if (parseFloat(marketCap) === 0 || parseFloat(marketCapDelta) === 0) {
+  const marketCapChange = (
+    marketCap: string,
+    marketCapDelta: string
+  ): number => {
+    const cap = parseFloat(marketCap);
+    const delta = parseFloat(marketCapDelta);
+
+    if (cap === 0 || delta === 0) {
       return 0;
     }
-    return Number((marketCapDelta / (marketCap - marketCapDelta)) * 100);
+
+    const denominator = cap - delta;
+    if (denominator === 0) {
+      return 0; // avoid division by zero
+    }
+
+    const change = (delta / denominator) * 100;
+    return change;
   };
 
   return (
