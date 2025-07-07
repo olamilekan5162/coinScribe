@@ -6,16 +6,14 @@ import { base } from "viem/chains";
 import { useWalletClient } from "wagmi";
 import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
   const [amount, setAmount] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
-  const [error, setError] = useState<string>("ddddd");
+  const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { data: walletClient } = useWalletClient();
   const { address } = useAuth();
-  const navigate = useNavigate();
 
   const publicClient = createPublicClient({
     chain: base,
@@ -60,7 +58,7 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
       console.log(receipt);
       setSuccess(true);
       setIsLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setError(err.message);
       setIsLoading(false);
@@ -128,10 +126,7 @@ const BuyModal: React.FC<any> = ({ isOpen, onClose, coinAddress }) => {
               You now own shares in this post. Thank you for supporting the
               creator!
             </p>
-            <button
-              onClick={() => navigate("/")}
-              className={`${styles.submitButton} glow`}
-            >
+            <button onClick={onClose} className={`${styles.submitButton} glow`}>
               Done
             </button>
           </div>

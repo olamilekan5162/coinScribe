@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  MapPin,
   Calendar,
-  Link as LinkIcon,
   Edit3,
   LogOut,
   Share2,
@@ -19,9 +17,6 @@ import PostCard from "../../components/PostCard/PostCard";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import styles from "./Profile.module.css";
 import { getProfileBalances } from "@zoralabs/coins-sdk";
-import { formatEther, parseEther } from "viem";
-import { tradeCoin, TradeParameters } from "@zoralabs/coins-sdk";
-import { privateKeyToAccount } from "viem/accounts";
 import Analytics from "../../components/Analytics/Analytics";
 
 interface ProfileUser {
@@ -56,7 +51,7 @@ const Profile: React.FC = () => {
   const { logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [userHoldings, setUserHoldings] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"posts" | "analytics">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "holdings">("posts");
 
   useEffect(() => {
     async function fetchUserBalances() {
@@ -64,8 +59,6 @@ const Profile: React.FC = () => {
         console.log("user address not found");
         return;
       }
-
-      // const coin = formatEther(2950854219812984816808n);
       const response = await getProfileBalances({
         identifier: address,
       });
@@ -230,12 +223,12 @@ const Profile: React.FC = () => {
                   <span className={styles.statValue}>{userPosts?.length}</span>
                   <span className={styles.statLabel}>Posts</span>
                 </div>
-                <div className={styles.stat}>
+                {/* <div className={styles.stat}>
                   <span className={styles.statValue}>
                     ${profileUser.total_earnings}
                   </span>
                   <span className={styles.statLabel}>Earned</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -289,12 +282,12 @@ const Profile: React.FC = () => {
               </button>
               {isOwnProfile && (
                 <button
-                  onClick={() => setActiveTab("analytics")}
+                  onClick={() => setActiveTab("holdings")}
                   className={`${styles.tab} ${
-                    activeTab === "analytics" ? styles.tabActive : ""
+                    activeTab === "holdings" ? styles.tabActive : ""
                   }`}
                 >
-                  Analytics ({userHoldings?.length})
+                  Holdings ({userHoldings?.length})
                 </button>
               )}
             </div>
@@ -330,7 +323,7 @@ const Profile: React.FC = () => {
                 )}
               </div>
             )}
-            {activeTab === "analytics" && (
+            {activeTab === "holdings" && (
               <div className={styles.analyticsSection}>
                 <div className={styles.sectionHeader}>
                   <h2 className={styles.sectionTitle}>
@@ -364,6 +357,7 @@ const Profile: React.FC = () => {
           <div className={styles.sidebar}>
             <StatsPanel
               variant="dashboard"
+              userHoldings={userHoldings}
               data={{
                 totalEarnings: profileUser.total_earnings,
                 coinPrice: 45.67, // Mock data

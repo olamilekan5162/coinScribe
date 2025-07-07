@@ -1,18 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./Analytics.module.css";
 import TradeModal from "../TradeModal/TradeModal";
 import { formatEther } from "viem";
-// import TradeModal from "../TradeModal/TradeModal";
 
 const Analytics: React.FC<any> = ({ holding }) => {
   const [showTradeModal, setShowTradeModal] = useState(false);
-
-  const marketCapChange = Number(
-    (holding?.node?.coin?.marketCapDelta24h /
-      (holding?.node?.coin?.marketCap -
-        holding?.node?.coin?.marketCapDelta24h)) *
-      100
-  );
 
   return (
     <>
@@ -72,8 +64,7 @@ const Analytics: React.FC<any> = ({ holding }) => {
           <div className={styles.portfolioStat}>
             <span className={styles.portfolioLabel}>24h Change</span>
             <span className={`${styles.portfolioValue} `}>
-              {marketCapChange >= 0 ? "+" : ""}
-              {marketCapChange.toFixed(2)}%
+              ${parseFloat(holding?.node?.coin?.marketCapDelta24h).toFixed(2)}
             </span>
           </div>
         </div>

@@ -43,7 +43,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ posts }) => {
       <div className={styles.carouselContainer}>
         <div
           className={styles.carouselTrack}
-          style={{ transform: `translateX(-${currentIndex * 151}%)` }}
+          style={{ transform: `translateX(-${currentIndex * 152}%)` }}
         >
           {posts.map((post) => (
             <div key={post.id} className={styles.carouselSlide}>

@@ -13,6 +13,7 @@ import {
   Coins,
   Users,
   TrendingDown,
+  Triangle,
 } from "lucide-react";
 import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
@@ -43,8 +44,8 @@ const PostDetail: React.FC = () => {
   const { posts } = usePosts();
   const otherPosts = posts.filter(
     (post) =>
-      post.creatorAddress === postData.creatorAddress &&
-      post.address !== postData.address
+      post?.creatorAddress === postData?.creatorAddress &&
+      post?.address !== postData?.address
   );
 
   useEffect(() => {
@@ -81,6 +82,7 @@ const PostDetail: React.FC = () => {
           throw new Error("unable to fetch");
         }
         const data: any = await response.json();
+        console.log({ ...coin, data });
         setPostData({ ...coin, data });
       } catch (e) {
         console.log(e);
@@ -117,12 +119,6 @@ const PostDetail: React.FC = () => {
       day: "numeric",
     });
   };
-
-  const marketChange = Number(
-    (postData?.marketCapDelta24h /
-      (postData?.marketCap - postData?.marketCapDelta24h)) *
-      100
-  );
 
   return (
     <div className={styles.postDetail}>
@@ -341,20 +337,22 @@ const PostDetail: React.FC = () => {
                     <span className={styles.price}>${postData?.marketCap}</span>
 
                     <div className={styles.coinChange}>
-                      {marketChange >= 0 ? (
-                        <TrendingUp size={12} className={styles.trendUp} />
-                      ) : (
-                        <TrendingDown size={12} className={styles.trendDown} />
-                      )}
+                      <Triangle
+                        size={12}
+                        className={
+                          postData?.marketCapDelta24h >= 0
+                            ? styles.trendUp
+                            : styles.trendDown
+                        }
+                      />
                       <span
                         className={
-                          marketChange >= 0
+                          postData?.marketCapDelta24h >= 0
                             ? styles.changeUp
                             : styles.changeDown
                         }
                       >
-                        {marketChange >= 0 ? "+" : ""}
-                        {marketChange.toFixed(2)}%
+                        ${parseFloat(postData?.marketCapDelta24h).toFixed(2)}
                       </span>
                     </div>
                   </div>

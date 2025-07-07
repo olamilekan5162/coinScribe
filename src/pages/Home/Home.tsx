@@ -10,6 +10,7 @@ import {
   Globe,
   Shield,
   Loader2,
+  Triangle,
 } from "lucide-react";
 import { usePosts } from "../../hooks/usePosts";
 import FeaturedCarousel from "../../components/FeaturedCarousel/FeaturedCarousel";
@@ -65,6 +66,26 @@ const Home: React.FC = () => {
     </div>
   );
 
+  const HeroVisualSkeleton = () => (
+    <div className="animate-pulse">
+      <div className="rounded-lg bg-gray-200 p-4 max-w-xs">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-8 w-8 rounded-full bg-gray-300"></div>
+          <div className="flex flex-col gap-1">
+            <div className="h-3 w-24 bg-gray-300 rounded"></div>
+            <div className="h-3 w-16 bg-gray-300 rounded"></div>
+          </div>
+        </div>
+        <div className="h-5 w-3/4 bg-gray-300 rounded mb-4"></div>
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded-full bg-gray-300"></div>
+          <div className="h-3 w-16 bg-gray-300 rounded"></div>
+          <div className="h-3 w-12 bg-gray-300 rounded"></div>
+        </div>
+      </div>
+    </div>
+  );
+
   const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
     <div className="flex items-center justify-center py-8">
       <Loader2 className="animate-spin mr-2" size={24} />
@@ -94,6 +115,10 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const heroArtist = posts.filter(
+    (artist) => artist?.address === "0xb3f7f286aff07324036a7d6792644590c0f5ded6"
+  );
 
   const platformStats: PlatformStat[] = [
     { icon: Users, label: "Active Writers", value: "12,500+" },
@@ -143,24 +168,44 @@ const Home: React.FC = () => {
             </div>
             <div className={styles.heroVisual}>
               <div className={styles.floatingCard}>
-                <div className={styles.cardHeader}>
-                  <UserAvatar
-                    src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150"
-                    size="sm"
-                  />
-                  <div className={styles.cardMeta}>
-                    <span>Alex Chen</span>
-                    <span>2 hours ago</span>
-                  </div>
-                </div>
-                <h3>The Future of Web3 Publishing</h3>
-                <div className={styles.cardStats}>
-                  <div className={styles.coinPrice}>
-                    <Coins size={14} />
-                    <span>$45.67</span>
-                    <span className={styles.priceUp}>+12.5%</span>
-                  </div>
-                </div>
+                {isLoading ? (
+                  <HeroVisualSkeleton />
+                ) : (
+                  <>
+                    <div className={styles.cardHeader}>
+                      <UserAvatar
+                        src={
+                          heroArtist?.[0]?.creatorProfile?.avatar?.previewImage
+                            ?.medium
+                        }
+                        size="sm"
+                      />
+                      <div className={styles.cardMeta}>
+                        <span>Opeyemi Olalekan</span>
+                        <span>10 hours ago</span>
+                      </div>
+                    </div>
+                    <h3>{heroArtist?.[0]?.name}</h3>
+                    <div className={styles.cardStats}>
+                      <div className={styles.coinPrice}>
+                        <Coins size={14} />
+                        <span>&{Number(heroArtist?.[0]?.marketCap)}</span>
+                        <span
+                          className={
+                            heroArtist?.[0]?.marketCapDelta24h >= 0
+                              ? styles.priceUp
+                              : styles.priceDown
+                          }
+                        >
+                          <Triangle size={12} />$
+                          {parseFloat(
+                            heroArtist?.[0]?.marketCapDelta24h
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

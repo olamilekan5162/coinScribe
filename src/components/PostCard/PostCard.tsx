@@ -1,6 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Share2, TrendingUp, Coins } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  TrendingUp,
+  Coins,
+  Triangle,
+} from "lucide-react";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import styles from "./PostCard.module.css";
 
@@ -13,7 +20,7 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({
   post,
   variant = "default",
-  showStats = true,
+  // showStats = true,
 }) => {
   const removeTags = (str: string) => {
     const parser = new DOMParser();
@@ -27,11 +34,6 @@ const PostCard: React.FC<PostCardProps> = ({
       day: "numeric",
     });
   };
-
-  const marketChange = Number(
-    (post?.marketCapDelta24h / (post?.marketCap - post?.marketCapDelta24h)) *
-      100
-  );
 
   return (
     <article className={`${styles.card} ${styles[variant]} glass`}>
@@ -49,11 +51,13 @@ const PostCard: React.FC<PostCardProps> = ({
                 <span>${post?.marketCap}</span>
                 <span
                   className={
-                    marketChange >= 0 ? styles.priceUp : styles.priceDown
+                    post?.marketCapDelta24h >= 0
+                      ? styles.priceUp
+                      : styles.priceDown
                   }
                 >
-                  {marketChange >= 0 ? "+" : ""}
-                  {marketChange.toFixed(2)}%
+                  <Triangle size={12} />$
+                  {parseFloat(post?.marketCapDelta24h).toFixed(2)}
                 </span>
               </div>
             )}
@@ -63,7 +67,10 @@ const PostCard: React.FC<PostCardProps> = ({
 
       <div className={styles.content}>
         <div className={styles.header}>
-          <div className={styles.authorInfo}>
+          <Link
+            to={`/profile/${post?.creatorAddress}`}
+            className={styles.authorInfo}
+          >
             <UserAvatar
               src={post?.data?.creator?.profile_image}
               alt={post?.data?.creator?.full_name}
@@ -81,7 +88,7 @@ const PostCard: React.FC<PostCardProps> = ({
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
           {post?.uniqueHolders > 2 && (
             <div className={styles.trendingBadge}>
               <TrendingUp size={12} />

@@ -193,8 +193,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .cardHeader {
@@ -235,7 +240,7 @@
 .coinPrice {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
 }
@@ -249,7 +254,16 @@
 }
 
 .priceUp {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   color: var(--accent-green);
+}
+.priceDown {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent-red);
 }
 
 /* Section Styles */
