@@ -52,6 +52,7 @@ export const usePosts = () => {
           return { ...coin, data };
         })
       );
+
       setPosts(coinDataArray);
       setIsLoading(false);
     } catch (e) {
