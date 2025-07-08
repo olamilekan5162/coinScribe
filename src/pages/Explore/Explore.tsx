@@ -4,7 +4,6 @@ import {
   Filter,
   TrendingUp,
   Clock,
-  Star,
   Tag,
   SlidersHorizontal,
   Loader2,
@@ -12,37 +11,6 @@ import {
 import PostCard from "../../components/PostCard/PostCard";
 import styles from "./Explore.module.css";
 import { usePosts } from "../../hooks/usePosts";
-
-interface Author {
-  name: string;
-  avatar: string;
-}
-
-interface Stats {
-  likes: number;
-  comments: number;
-  shares: number;
-}
-
-interface CoinData {
-  price: number;
-  change: number;
-  holders: number;
-  trending?: boolean;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  excerpt: string;
-  author: Author;
-  publishedAt: string;
-  readTime: number;
-  image?: string;
-  tags: string[];
-  stats: Stats;
-  coinData?: CoinData;
-}
 
 interface Category {
   id: string;
@@ -64,13 +32,13 @@ const Explore: React.FC = () => {
   const { isLoading, posts, error } = usePosts();
 
   // Loading skeleton components
-  const PostSkeleton = () => (
-    <div className="animate-pulse bg-gray-200 rounded-lg p-4">
-      <div className="bg-gray-300 h-4 w-3/4 mb-2 rounded"></div>
-      <div className="bg-gray-300 h-4 w-1/2 mb-4 rounded"></div>
-      <div className="bg-gray-300 h-32 w-full rounded"></div>
-    </div>
-  );
+  // const PostSkeleton = () => (
+  //   <div className="animate-pulse bg-gray-200 rounded-lg p-4">
+  //     <div className="bg-gray-300 h-4 w-3/4 mb-2 rounded"></div>
+  //     <div className="bg-gray-300 h-4 w-1/2 mb-4 rounded"></div>
+  //     <div className="bg-gray-300 h-32 w-full rounded"></div>
+  //   </div>
+  // );
 
   const FilterSkeleton = () => (
     <div className="animate-pulse bg-gray-200 rounded-lg p-4">
