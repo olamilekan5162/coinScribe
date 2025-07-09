@@ -1,4 +1,4 @@
-# CoinScribe - Decentralized Publishing Platform
+# CoinScribe
 
 **Where Every Post Becomes a Coin**  
 Decentralized publishing meets creator ownership.  
@@ -15,6 +15,8 @@ Built with Zora CoinV4 • Powered by Supabase, IPFS, and Wagmi.
 What Medium did for blogging, CoinScribe does for Web3:  
 📝 Write content → 🪙 Mint a coin → 💰 Trade and support creators.
 
+---
+
 ## 🎯 Why CoinScribe?
 
 Traditional publishing platforms extract value from creators while maintaining centralized control. CoinScribe revolutionizes this by:
@@ -30,6 +32,8 @@ Traditional publishing platforms extract value from creators while maintaining c
 ## 📹 Demo Video
 
 [CoinScribe video demo](https://youtu.be/uR3vW9rr-bQ?si=lyBHRSHD_yyYhCzq)
+
+---
 
 ## 🔧 Tech Stack
 
@@ -82,7 +86,7 @@ VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
 VITE_PINATA_GATEWAY_URL=your_pinata_gateway_url
-VITE_PINATA_API_KEY=your_pinata_api_key (optional)
+VITE_PINATA_API_KEY=your_pinata_api_key
 VITE_PINATA_SECRET_API_KEY=your_pinata_secret_key (optional)
 ```
 
